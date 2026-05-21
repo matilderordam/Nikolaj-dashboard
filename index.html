@@ -465,7 +465,7 @@
 // ─────────────────────────────────────────────────────────
 const SHEET_ID  = '1yhdQ6ebK67CjA_L2lEB12nrTMPxybO4jmodjhtUqkSk';
 // sheet=Post+Tracking targets the second tab by name
-const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Post+Tracking`;
+const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=230932818`;
 
 // Phase constants
 const BASELINE_FOLLOWERS  = 1023;
@@ -928,7 +928,9 @@ async function init() {
       `<strong>${err.message}</strong><br><br>
        Make sure the Google Sheet is set to <em>"Anyone with the link can view"</em>:<br>
        Sheet → Share → Change to Anyone with the link → Viewer.<br><br>
-       The Sheet ID in this file is: <code>${SHEET_ID}</code>`;
+       Sheet ID: <code>${SHEET_ID}</code><br>
+       Fetching: <code>${SHEET_URL}</code>`;
+    console.error('Full error:', err);
   }
 }
 
