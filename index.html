@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>@nikolajhougs · Performance Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0a0b0f;
+    --surface: #111318;
+    --surface2: #181c24;
+    --border: #1e2330;
+    --accent: #f5c842;
+    --accent2: #e8834a;
+    --green: #3de89e;
+    --red: #ff4d6d;
+    --blue: #4d9fff;
+    --text: #eef0f5;
+    --muted: #5a6175;
+    --label: #8892a4;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Barlow', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0 0 60px 0;
+  }
+
+  /* ── LOADING ── */
+  #loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    gap: 20px;
+  }
+  .spinner {
+    width: 40px; height: 40px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ── ERROR ── */
+  #error-state {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    gap: 16px;
+    padding: 40px;
+    text-align: center;
+  }
+  .error-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--red);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .error-msg { font-size: 14px; color: var(--label); max-width: 500px; line-height: 1.7; }
+  .error-msg code {
+    background: var(--surface);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 12px;
+    color: var(--accent);
+  }
+
+  /* ── MAIN CONTENT ── */
+  #dashboard { display: none; }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--surface);
+    border-bottom: 2px solid var(--accent);
+    padding: 24px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .handle {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+  .phase-badge {
+    background: var(--accent);
+    color: #0a0b0f;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 2px;
+  }
+  .header-right { font-size: 13px; color: var(--label); text-align: right; line-height: 1.6; }
+  .header-right strong { color: var(--text); }
+  #last-updated { color: var(--green); }
+
+  /* ── LAYOUT ── */
+  .container { max-width: 1200px; margin: 0 auto; padding: 36px 40px 0; }
+
+  /* ── SECTION TITLE ── */
+  .section-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* ── FOLLOWER HERO ── */
+  .follower-hero {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr 1fr;
+    gap: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--red);
+    margin-bottom: 32px;
+    overflow: hidden;
+    animation: fadeUp 0.4s both;
+  }
+  .fh-block { padding: 28px 28px 24px; border-right: 1px solid var(--border); }
+  .fh-block:last-child { border-right: none; }
+  .fh-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+  .fh-number { font-family: 'Barlow Condensed', sans-serif; font-size: 56px; font-weight: 900; line-height: 1; margin-bottom: 6px; }
+  .fh-sub { font-size: 11px; color: var(--muted); }
+  .fh-actual .fh-number { color: var(--text); }
+  .fh-expected { background: rgba(232,131,74,0.06); border-left: 2px solid var(--accent2); }
+  .fh-expected .fh-number { color: var(--accent2); }
+  .fh-expected .fh-label { color: var(--accent2); opacity: 0.8; }
+  .fh-target .fh-number { color: var(--muted); }
+  .fh-vs {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 20px 24px; background: rgba(255,77,109,0.07); border-right: 1px solid var(--border);
+    text-align: center; min-width: 140px;
+  }
+  .fh-gap-label { font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--red); margin-bottom: 6px; opacity: 0.8; }
+  .fh-gap { font-family: 'Barlow Condensed', sans-serif; font-size: 64px; font-weight: 900; color: var(--red); line-height: 1; margin-bottom: 4px; }
+  .fh-gap.ahead { color: var(--green); }
+  .fh-gap-sub { font-size: 10px; color: var(--red); opacity: 0.7; max-width: 100px; line-height: 1.4; }
+  .fh-gap-sub.ahead { color: var(--green); }
+
+  /* ── KPI CARDS ── */
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 32px; }
+  .kpi-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-top: 3px solid var(--border); padding: 20px 22px;
+    transition: border-color 0.2s, transform 0.2s; animation: fadeUp 0.5s both;
+  }
+  .kpi-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+  .kpi-card.on-track { border-top-color: var(--green); }
+  .kpi-card.warn { border-top-color: var(--accent); }
+  .kpi-card.behind { border-top-color: var(--red); }
+  .kpi-label { font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--label); margin-bottom: 10px; }
+  .kpi-value { font-family: 'Barlow Condensed', sans-serif; font-size: 42px; font-weight: 900; line-height: 1; color: var(--text); margin-bottom: 6px; }
+  .kpi-sub { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 3px 8px; border-radius: 2px; }
+  .badge.green { background: rgba(61,232,158,0.15); color: var(--green); }
+  .badge.yellow { background: rgba(245,200,66,0.15); color: var(--accent); }
+  .badge.red { background: rgba(255,77,109,0.15); color: var(--red); }
+
+  /* ── PROGRESS ── */
+  .progress-section { margin-bottom: 32px; }
+  .progress-card { background: var(--surface); border: 1px solid var(--border); padding: 20px 24px; margin-bottom: 10px; animation: fadeUp 0.5s both; }
+  .progress-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px; }
+  .progress-name { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+  .progress-numbers { font-size: 13px; color: var(--label); text-align: right; line-height: 1.5; }
+  .progress-track { height: 6px; background: var(--border); border-radius: 1px; position: relative; overflow: visible; }
+  .progress-fill { height: 100%; border-radius: 1px; transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1); }
+  .progress-fill.green { background: var(--green); }
+  .progress-fill.yellow { background: var(--accent); }
+  .progress-fill.red { background: var(--red); }
+  .track-marker { position: absolute; top: -5px; width: 2px; height: 16px; transform: translateX(-50%); }
+  .track-marker .marker-label { position: absolute; top: -20px; transform: translateX(-50%); font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; white-space: nowrap; }
+  .track-marker.now { background: var(--accent2); }
+  .track-marker.now .marker-label { color: var(--accent2); }
+  .track-marker.target-mark { background: var(--muted); }
+  .track-marker.target-mark .marker-label { color: var(--muted); }
+
+  /* ── CHARTS ── */
+  .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 32px; }
+  .chart-card { background: var(--surface); border: 1px solid var(--border); padding: 24px; animation: fadeUp 0.5s both; }
+  .chart-card.wide { grid-column: 1 / -1; }
+  .chart-title { font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--label); margin-bottom: 20px; }
+
+  /* ── CONTENT MIX ── */
+  .mix-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 32px; }
+  .mix-card { background: var(--surface); border: 1px solid var(--border); padding: 20px; animation: fadeUp 0.5s both; }
+  .mix-type { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 900; text-transform: uppercase; margin-bottom: 4px; }
+  .mix-share { font-family: 'Barlow Condensed', sans-serif; font-size: 44px; font-weight: 900; line-height: 1; margin-bottom: 12px; }
+  .mix-share.reel { color: var(--green); }
+  .mix-share.carousel { color: var(--blue); }
+  .mix-share.post { color: var(--accent2); }
+  .mix-stats { display: flex; flex-direction: column; gap: 4px; }
+  .mix-stat { font-size: 12px; color: var(--label); }
+  .mix-stat span { color: var(--text); font-weight: 600; }
+
+  /* ── PILLARS ── */
+  .pillar-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 32px; }
+  .pillar-card { background: var(--surface); border: 1px solid var(--border); padding: 22px 24px; animation: fadeUp 0.5s both; }
+  .pillar-name { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; }
+  .pillar-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .pillar-stat-val { font-family: 'Barlow Condensed', sans-serif; font-size: 26px; font-weight: 800; line-height: 1; }
+  .pillar-stat-lbl { font-size: 10px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
+
+  /* ── TABLE ── */
+  .table-card { background: var(--surface); border: 1px solid var(--border); overflow: hidden; animation: fadeUp 0.5s both; margin-bottom: 32px; }
+  .table-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-bottom: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th { background: var(--surface2); padding: 10px 16px; text-align: left; font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); white-space: nowrap; }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+  tbody tr:hover { background: rgba(255,255,255,0.02); }
+  tbody td { padding: 11px 16px; color: var(--text); white-space: nowrap; }
+  tbody td.muted { color: var(--label); }
+  .format-tag { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 2px 7px; border-radius: 2px; }
+  .format-tag.reel { background: rgba(61,232,158,0.15); color: var(--green); }
+  .format-tag.carousel { background: rgba(77,159,255,0.15); color: var(--blue); }
+  .format-tag.post { background: rgba(232,131,74,0.15); color: var(--accent2); }
+  .er-high { color: var(--green); font-weight: 600; }
+  .er-mid { color: var(--accent); font-weight: 600; }
+  .er-low { color: var(--label); }
+  .ig-link { color: var(--label); text-decoration: none; font-size: 11px; opacity: 0.6; transition: opacity 0.2s, color 0.2s; }
+  .ig-link:hover { opacity: 1; color: var(--accent); }
+
+  .footnote { font-size: 11px; color: var(--muted); padding: 0 40px; max-width: 1200px; margin: 0 auto; }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+  @media (max-width: 900px) {
+    .follower-hero { grid-template-columns: 1fr 1fr; }
+    .fh-vs { min-width: auto; }
+    .fh-number { font-size: 38px; }
+    .fh-gap { font-size: 46px; }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .charts-grid { grid-template-columns: 1fr; }
+    .mix-grid { grid-template-columns: 1fr; }
+    .pillar-grid { grid-template-columns: 1fr; }
+    .container { padding: 24px 20px 0; }
+    .header { padding: 18px 20px; }
+    .footnote { padding: 0 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOADING STATE -->
+<div id="loading">
+  <div class="spinner"></div>
+  <div class="loading-text">Fetching live data…</div>
+</div>
+
+<!-- ERROR STATE -->
+<div id="error-state">
+  <div class="error-title">⚠ Could not load data</div>
+  <div class="error-msg" id="error-msg"></div>
+</div>
+
+<!-- DASHBOARD (hidden until data loads) -->
+<div id="dashboard">
+
+<div class="header">
+  <div class="header-left">
+    <div class="handle">@nikolajhougs</div>
+    <div class="phase-badge">⚡ Phase 1 · World Cup 2026</div>
+  </div>
+  <div class="header-right">
+    Baseline: <strong>Apr 2026</strong> · Target: <strong>Oct 2026</strong><br>
+    Live data · Last fetched: <strong id="last-updated">—</strong>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="section-title">Follower Tracking · Today vs. Expected Pace</div>
+  <div class="follower-hero" id="follower-hero">
+    <div class="fh-block fh-actual">
+      <div class="fh-label">Actual today</div>
+      <div class="fh-number" id="fh-actual">—</div>
+      <div class="fh-sub" id="fh-actual-date">—</div>
+    </div>
+    <div class="fh-vs">
+      <div class="fh-gap-label" id="fh-gap-label">Behind by</div>
+      <div class="fh-gap" id="fh-gap">—</div>
+      <div class="fh-gap-sub" id="fh-gap-sub">followers short of pace</div>
+    </div>
+    <div class="fh-block fh-expected">
+      <div class="fh-label">Should be today</div>
+      <div class="fh-number" id="fh-expected">—</div>
+      <div class="fh-sub">Linear pace to 1,535</div>
+    </div>
+    <div class="fh-block fh-target">
+      <div class="fh-label">Target · Oct 1</div>
+      <div class="fh-number">1,535</div>
+      <div class="fh-sub">+50% from baseline</div>
+    </div>
+  </div>
+
+  <div class="section-title" style="margin-top:4px;">Live KPIs</div>
+  <div class="kpi-grid" id="kpi-grid">
+    <div class="kpi-card" id="kpi-followers">
+      <div class="kpi-label">Followers</div>
+      <div class="kpi-value" id="kv-followers">—</div>
+      <div class="kpi-sub"><span class="badge" id="kb-followers">—</span></div>
+    </div>
+    <div class="kpi-card" id="kpi-reach">
+      <div class="kpi-label">Avg. Reach</div>
+      <div class="kpi-value" id="kv-reach">—</div>
+      <div class="kpi-sub"><span class="badge green" id="kb-reach">—</span></div>
+    </div>
+    <div class="kpi-card" id="kpi-er">
+      <div class="kpi-label">Avg. ER</div>
+      <div class="kpi-value" id="kv-er">—</div>
+      <div class="kpi-sub"><span class="badge green" id="kb-er">—</span></div>
+    </div>
+    <div class="kpi-card" id="kpi-cadence">
+      <div class="kpi-label">Posting Cadence</div>
+      <div class="kpi-value" id="kv-cadence">—</div>
+      <div class="kpi-sub"><span class="badge" id="kb-cadence">—</span> <span id="ks-cadence">posts last 4 wks</span></div>
+    </div>
+  </div>
+
+  <div class="section-title">Goal Progress · vs. Time</div>
+  <div class="progress-section">
+    <div class="progress-card">
+      <div class="progress-header">
+        <div>
+          <div class="progress-name">Follower Growth</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px;">1,023 → 1,535 target (+50%)</div>
+        </div>
+        <div class="progress-numbers" id="prog-follower-txt">—</div>
+      </div>
+      <div class="progress-track" style="margin-top:18px;" id="prog-follower-track">
+        <div class="progress-fill" id="prog-follower-fill" style="width:0%"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:8px;">
+        <span>1,023 (Apr 1)</span>
+        <span style="color:var(--accent2);" id="prog-follower-exp">—</span>
+        <span>1,535 (Oct 1)</span>
+      </div>
+    </div>
+    <div class="progress-card">
+      <div class="progress-header">
+        <div>
+          <div class="progress-name">Avg. Reach</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px;">1,350 → 2,500 target (+80%)</div>
+        </div>
+        <div class="progress-numbers" id="prog-reach-txt">—</div>
+      </div>
+      <div class="progress-track" style="margin-top:18px;">
+        <div class="track-marker now" style="left:16.7%"><div class="marker-label">Now</div></div>
+        <div class="track-marker target-mark" style="left:100%"><div class="marker-label">Target</div></div>
+        <div class="progress-fill" id="prog-reach-fill" style="width:0%"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:8px;">
+        <span>1,350 (Apr)</span><span style="color:var(--accent2);">Expected now: ~1,543</span><span>2,500 (Oct)</span>
+      </div>
+    </div>
+    <div class="progress-card">
+      <div class="progress-header">
+        <div>
+          <div class="progress-name">Engagement Rate</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px;">19% baseline → maintain ≥15%</div>
+        </div>
+        <div class="progress-numbers" id="prog-er-txt">—</div>
+      </div>
+      <div class="progress-track" style="margin-top:18px;">
+        <div class="track-marker now" style="left:16.7%"><div class="marker-label">Now</div></div>
+        <div class="track-marker target-mark" style="left:79.6%"><div class="marker-label">Min 15%</div></div>
+        <div class="progress-fill green" id="prog-er-fill" style="width:0%"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:8px;">
+        <span>0%</span><span style="color:var(--accent2);">Floor: 15%</span><span>Max: ~40%</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">Trends Over Time</div>
+  <div class="charts-grid">
+    <div class="chart-card wide">
+      <div class="chart-title">Follower Count · Actual vs. Expected Pace</div>
+      <canvas id="followerChart" height="90"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Reach Per Post</div>
+      <canvas id="reachChart" height="160"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Engagement Rate Per Post</div>
+      <canvas id="erChart" height="160"></canvas>
+    </div>
+    <div class="chart-card wide">
+      <div class="chart-title">Rolling Avg. Reach · Trajectory</div>
+      <canvas id="rollingChart" height="90"></canvas>
+    </div>
+  </div>
+
+  <div class="section-title">Content Format Mix</div>
+  <div class="mix-grid" id="mix-grid"></div>
+
+  <div class="section-title">Content Pillars</div>
+  <div class="pillar-grid" id="pillar-grid"></div>
+
+  <div class="section-title">Post Log</div>
+  <div class="table-card">
+    <div class="table-header">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">All Posts</div>
+      <div style="font-size:12px;color:var(--muted);" id="post-count">—</div>
+    </div>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th><th>Title</th><th>Format</th><th>Pillar</th>
+            <th>Reach</th><th>ER %</th><th>Engagement</th><th>New Followers</th><th>Link</th>
+          </tr>
+        </thead>
+        <tbody id="postTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<div class="footnote">
+  * Data pulled live from Google Sheets on every page load. Based solely on Nikolaj's own posts — collaboration content with Cube Factory Racing is not included. Phase 1: Apr → Oct 2026.
+</div>
+
+</div><!-- /dashboard -->
+
+<script>
+// ─────────────────────────────────────────────────────────
+// CONFIG — update SHEET_ID if the spreadsheet changes
+// ─────────────────────────────────────────────────────────
+const SHEET_ID  = '1yhdQ6ebK67CjA_L2lEB12nrTMPxybO4jmodjhtUqkSk';
+const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+
+// Phase constants
+const BASELINE_FOLLOWERS  = 1023;
+const TARGET_FOLLOWERS    = 1535;
+const PHASE_START         = new Date('2026-04-01');
+const PHASE_END           = new Date('2026-10-01');
+const PHASE_DAYS          = (PHASE_END - PHASE_START) / 86400000; // 183
+
+// ─────────────────────────────────────────────────────────
+// FETCH + PARSE
+// ─────────────────────────────────────────────────────────
+async function fetchSheetData() {
+  const res  = await fetch(SHEET_URL);
+  const text = await res.text();
+  // Strip Google's JS wrapper: /*O_o*/\ngoogle.visualization.Query.setResponse({…});
+  const json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*?)\);/)[1]);
+  return json;
+}
+
+function parseRows(json) {
+  const rows = json.table.rows;
+  const posts = [];
+
+  // Find the data rows — they start after the two header rows.
+  // We detect by checking if col[0] looks like a date (dd/mm/yyyy).
+  for (const row of rows) {
+    const cells = row.c;
+    if (!cells || !cells[0] || !cells[0].v) continue;
+    const dateVal = cells[0].v;
+    // Google Sheets dates come as "Date(year,month,day)" strings in gviz
+    // or as formatted strings depending on cell type. Handle both.
+    let dateStr = '';
+    if (typeof dateVal === 'string' && dateVal.startsWith('Date(')) {
+      const parts = dateVal.replace('Date(','').replace(')','').split(',');
+      const d = new Date(+parts[0], +parts[1], +parts[2]);
+      dateStr = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+    } else if (typeof dateVal === 'string' && /\d{2}\/\d{2}\/\d{4}/.test(dateVal)) {
+      dateStr = dateVal;
+    } else { continue; }
+
+    const g = (i, fallback = 0) => {
+      if (!cells[i] || cells[i].v === null || cells[i].v === undefined) return fallback;
+      const v = cells[i].v;
+      if (typeof v === 'string') {
+        // handle percentage strings like "21,6%" or "21.6%"
+        const cleaned = v.replace('%','').replace(',','.').trim();
+        const n = parseFloat(cleaned);
+        return isNaN(n) ? fallback : n;
+      }
+      return typeof v === 'number' ? v : fallback;
+    };
+    const gs = (i, fallback = '') => {
+      if (!cells[i] || cells[i].v === null) return fallback;
+      return String(cells[i].v).trim();
+    };
+
+    // Column order (0-indexed) from the sheet:
+    // 0:date_posted 1:date_reported 2:title 3:link 4:format 5:pillar
+    // 6:followers_posted 7:followers_reported 8:likes 9:comments 10:sends
+    // 11:repost 12:saves 13:reach 14:views 15:profile_visits 16:new_followers
+    // 17:followers_pct 18:non_followers_pct 19:er_pct 20:avg_reach_running 21:total_engagement
+
+    const erRaw = g(19, null);
+    if (erRaw === null && g(13, 0) === 0) continue; // skip empty rows
+
+    posts.push({
+      date:         dateStr,
+      title:        gs(2),
+      url:          gs(3),
+      format:       gs(4),
+      pillar:       gs(5) || '—',
+      followers:    g(6),
+      reach:        g(13),
+      er:           erRaw !== null ? erRaw : 0,
+      engagement:   g(21),
+      newFollowers: g(16),
+      avgReach:     g(20),
+    });
+  }
+  return posts;
+}
+
+// ─────────────────────────────────────────────────────────
+// COMPUTE STATS
+// ─────────────────────────────────────────────────────────
+function computeStats(posts) {
+  if (!posts.length) return null;
+
+  // Latest follower count = followers at most recent post
+  const sorted = [...posts].sort((a,b) => parseDate(b.date) - parseDate(a.date));
+  const latestFollowers = sorted[0].followers;
+  const latestDate      = sorted[0].date;
+
+  // Today's expected pace
+  const today = new Date();
+  const daysIn = Math.max(0, (today - PHASE_START) / 86400000);
+  const expectedToday = Math.round(BASELINE_FOLLOWERS + (TARGET_FOLLOWERS - BASELINE_FOLLOWERS) * (daysIn / PHASE_DAYS));
+  const gap = latestFollowers - expectedToday;
+
+  // Posts in last 28 days
+  const cutoff = new Date(today - 28*86400000);
+  const recentPosts = posts.filter(p => parseDate(p.date) >= cutoff);
+
+  // Avg reach + ER across all posts (exclude outliers? No — show real)
+  const validPosts = posts.filter(p => p.reach > 0);
+  const avgReach   = validPosts.length ? Math.round(validPosts.reduce((s,p) => s+p.reach, 0) / validPosts.length) : 0;
+  const avgER      = validPosts.length ? +(validPosts.reduce((s,p) => s+p.er, 0) / validPosts.length).toFixed(1) : 0;
+
+  // Running avg reach — last value from posts
+  const lastAvgReach = sorted[0].avgReach || avgReach;
+
+  // Content mix
+  const formats = {};
+  validPosts.forEach(p => {
+    const f = p.format || 'Other';
+    if (!formats[f]) formats[f] = { count:0, reach:0, er:0, engagement:0 };
+    formats[f].count++;
+    formats[f].reach      += p.reach;
+    formats[f].er         += p.er;
+    formats[f].engagement += p.engagement;
+  });
+  Object.keys(formats).forEach(f => {
+    const fx = formats[f];
+    fx.avgReach      = Math.round(fx.reach      / fx.count);
+    fx.avgER         = +(fx.er         / fx.count).toFixed(1);
+    fx.avgEngagement = Math.round(fx.engagement / fx.count);
+    fx.pct           = Math.round(fx.count / validPosts.length * 100);
+  });
+
+  // Pillars
+  const pillars = {};
+  validPosts.filter(p => p.pillar && p.pillar !== '—').forEach(p => {
+    const pl = p.pillar;
+    if (!pillars[pl]) pillars[pl] = { count:0, reach:0, er:0, engagement:0 };
+    pillars[pl].count++;
+    pillars[pl].reach      += p.reach;
+    pillars[pl].er         += p.er;
+    pillars[pl].engagement += p.engagement;
+  });
+  Object.keys(pillars).forEach(pl => {
+    const px = pillars[pl];
+    px.avgReach      = Math.round(px.reach      / px.count);
+    px.avgER         = +(px.er         / px.count).toFixed(1);
+    px.avgEngagement = Math.round(px.engagement / px.count);
+  });
+
+  return { latestFollowers, latestDate, expectedToday, gap, daysIn,
+           recentCount: recentPosts.length, avgReach, avgER, lastAvgReach,
+           formats, pillars, validPosts, sorted };
+}
+
+function parseDate(str) {
+  // dd/mm/yyyy → Date
+  const [d,m,y] = str.split('/');
+  return new Date(+y, +m-1, +d);
+}
+
+// ─────────────────────────────────────────────────────────
+// RENDER
+// ─────────────────────────────────────────────────────────
+let charts = {};
+
+function renderDashboard(posts, stats) {
+  // Timestamp
+  document.getElementById('last-updated').textContent = new Date().toLocaleString('en-GB', {
+    day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'
+  });
+  document.getElementById('post-count').textContent = `${posts.length} posts tracked`;
+
+  // ── FOLLOWER HERO
+  const { latestFollowers, expectedToday, gap, latestDate } = stats;
+  document.getElementById('fh-actual').textContent    = latestFollowers.toLocaleString();
+  document.getElementById('fh-actual-date').textContent = `Latest report: ${latestDate}`;
+  document.getElementById('fh-expected').textContent  = expectedToday.toLocaleString();
+
+  const gapEl    = document.getElementById('fh-gap');
+  const gapLbl   = document.getElementById('fh-gap-label');
+  const gapSub   = document.getElementById('fh-gap-sub');
+  const heroEl   = document.getElementById('follower-hero');
+
+  if (gap >= 0) {
+    gapEl.textContent  = `+${gap}`;
+    gapLbl.textContent = 'Ahead by';
+    gapSub.textContent = 'followers above pace';
+    gapEl.classList.add('ahead');
+    gapSub.classList.add('ahead');
+    heroEl.style.borderTopColor = 'var(--green)';
+  } else {
+    gapEl.textContent  = gap.toString();
+    gapLbl.textContent = 'Behind by';
+    gapSub.textContent = 'followers short of pace';
+  }
+
+  // ── KPI CARDS
+  const followerPct = (((latestFollowers - BASELINE_FOLLOWERS) / (TARGET_FOLLOWERS - BASELINE_FOLLOWERS)) * 100).toFixed(1);
+  const followerOnTrack = gap >= 0;
+  document.getElementById('kv-followers').textContent = latestFollowers.toLocaleString();
+  const kbF = document.getElementById('kb-followers');
+  kbF.textContent = followerOnTrack ? '✓ On Track' : `${gap} vs pace`;
+  kbF.className   = `badge ${followerOnTrack ? 'green' : 'red'}`;
+  document.getElementById('kpi-followers').className = `kpi-card ${followerOnTrack ? 'on-track' : 'behind'}`;
+
+  document.getElementById('kv-reach').textContent  = stats.avgReach.toLocaleString();
+  const reachOT = stats.avgReach >= 2500;
+  document.getElementById('kb-reach').textContent  = reachOT ? '✓ On Track · Goal: 2,500' : `Goal: 2,500`;
+  document.getElementById('kb-reach').className    = `badge ${reachOT ? 'green' : 'yellow'}`;
+  document.getElementById('kpi-reach').className   = `kpi-card ${reachOT ? 'on-track' : 'warn'}`;
+
+  document.getElementById('kv-er').textContent = stats.avgER + '%';
+  const erOT = stats.avgER >= 15;
+  document.getElementById('kb-er').textContent  = erOT ? '✓ On Track · ≥15%' : 'Below 15% floor';
+  document.getElementById('kb-er').className    = `badge ${erOT ? 'green' : 'red'}`;
+  document.getElementById('kpi-er').className   = `kpi-card ${erOT ? 'on-track' : 'behind'}`;
+
+  document.getElementById('kv-cadence').textContent = stats.recentCount;
+  const cadOT = stats.recentCount >= 8;
+  document.getElementById('kb-cadence').textContent = cadOT ? '✓ On Track' : `Goal: 8/mo`;
+  document.getElementById('kb-cadence').className   = `badge ${cadOT ? 'green' : 'yellow'}`;
+  document.getElementById('kpi-cadence').className  = `kpi-card ${cadOT ? 'on-track' : 'warn'}`;
+
+  // ── PROGRESS BARS
+  // Followers
+  const followerProgress = Math.min(100, ((latestFollowers - BASELINE_FOLLOWERS) / (TARGET_FOLLOWERS - BASELINE_FOLLOWERS)) * 100);
+  const timePct = Math.min(100, (stats.daysIn / PHASE_DAYS) * 100);
+
+  const followerTrack = document.getElementById('prog-follower-track');
+  // Remove existing markers first
+  followerTrack.querySelectorAll('.track-marker').forEach(el => el.remove());
+  // Add now marker
+  const nowM = document.createElement('div');
+  nowM.className = 'track-marker now';
+  nowM.style.left = timePct + '%';
+  nowM.innerHTML = `<div class="marker-label">Now</div>`;
+  followerTrack.appendChild(nowM);
+  // Add target marker
+  const tgtM = document.createElement('div');
+  tgtM.className = 'track-marker target-mark';
+  tgtM.style.left = '100%';
+  tgtM.innerHTML = `<div class="marker-label">Target</div>`;
+  followerTrack.appendChild(tgtM);
+
+  const fillColor = followerOnTrack ? 'green' : 'red';
+  const fillEl = document.getElementById('prog-follower-fill');
+  fillEl.className = `progress-fill ${fillColor}`;
+  setTimeout(() => { fillEl.style.width = followerProgress + '%'; }, 200);
+
+  document.getElementById('prog-follower-txt').innerHTML =
+    `<strong style="color:var(--text);font-size:15px;">${latestFollowers.toLocaleString()}</strong> current<br>
+     <span style="color:${followerOnTrack ? 'var(--green)' : 'var(--red)'};">${followerProgress.toFixed(1)}% of goal · ${gap >= 0 ? '+'+gap : gap} vs pace</span>`;
+  document.getElementById('prog-follower-exp').textContent = `Expected now: ~${expectedToday.toLocaleString()}`;
+
+  // Reach
+  const reachProgress = Math.min(120, (stats.avgReach / 2500) * 100);
+  const rfill = document.getElementById('prog-reach-fill');
+  rfill.className = `progress-fill ${reachOT ? 'green' : 'yellow'}`;
+  setTimeout(() => { rfill.style.width = Math.min(100, reachProgress) + '%'; }, 300);
+  document.getElementById('prog-reach-txt').innerHTML =
+    `<strong style="color:var(--text);font-size:15px;">${stats.avgReach.toLocaleString()}</strong> current avg<br>
+     <span style="color:${reachOT ? 'var(--green)' : 'var(--accent)'};">${reachOT ? reachProgress.toFixed(0) + '% — target exceeded ✓' : reachProgress.toFixed(0) + '% of goal'}</span>`;
+
+  // ER
+  const maxER = 40;
+  const erPct = Math.min(100, (stats.avgER / maxER) * 100);
+  setTimeout(() => { document.getElementById('prog-er-fill').style.width = erPct + '%'; }, 400);
+  document.getElementById('prog-er-txt').innerHTML =
+    `<strong style="color:var(--text);font-size:15px;">${stats.avgER}%</strong> current avg<br>
+     <span style="color:var(--green);">+${(stats.avgER - 19).toFixed(1)}pp above baseline ✓</span>`;
+
+  // ── CHARTS
+  Chart.defaults.color = '#5a6175';
+  Chart.defaults.borderColor = '#1e2330';
+  Chart.defaults.font.family = "'Barlow', sans-serif";
+
+  const sortedPosts = [...posts].sort((a,b) => parseDate(a.date) - parseDate(b.date));
+  const postLabels  = sortedPosts.map(p => p.date.substring(0,5));
+
+  // Follower chart with expected pace
+  const followerData = sortedPosts.map(p => p.followers);
+  const expectedData = sortedPosts.map(p => {
+    const d = (parseDate(p.date) - PHASE_START) / 86400000;
+    if (d <= 0) return BASELINE_FOLLOWERS;
+    return Math.round(BASELINE_FOLLOWERS + (TARGET_FOLLOWERS - BASELINE_FOLLOWERS) * (d / PHASE_DAYS));
+  });
+
+  // Add "today" point
+  const todayLabel  = 'Today';
+  const allFLabels  = [...postLabels, todayLabel];
+  const allFActual  = [...followerData, latestFollowers];
+  const allFExpected= [...expectedData, expectedToday];
+  const allFTarget  = allFLabels.map((_, i) => (i === allFLabels.length - 1 ? null : null));
+  // Target line: just show end point
+  const targetLineData = allFLabels.map(() => null);
+  targetLineData[0] = BASELINE_FOLLOWERS;
+  targetLineData[targetLineData.length - 1] = TARGET_FOLLOWERS;
+
+  if (charts.follower) charts.follower.destroy();
+  charts.follower = new Chart(document.getElementById('followerChart'), {
+    type: 'line',
+    data: {
+      labels: allFLabels,
+      datasets: [
+        { label: 'Expected pace', data: allFExpected, borderColor: '#e8834a', borderDash: [6,4], pointRadius: 0, borderWidth: 2, fill: false, tension: 0, order: 2 },
+        { label: 'Actual followers', data: allFActual, borderColor: '#f5c842', backgroundColor: 'rgba(245,200,66,0.07)', fill: true, tension: 0.35, pointBackgroundColor: '#f5c842', pointRadius: 4, pointHoverRadius: 7, borderWidth: 2.5, order: 1 },
+        { label: 'Target Oct 1 → 1,535', data: targetLineData, borderColor: 'rgba(255,77,109,0.4)', borderDash: [2,4], pointRadius: [0,...allFLabels.slice(1).map((_,i) => i === allFLabels.length-2 ? 6 : 0)], pointBackgroundColor: '#ff4d6d', borderWidth: 1.5, fill: false, tension: 0, order: 3 },
+      ]
+    },
+    options: {
+      responsive: true, interaction: { mode:'index', intersect:false },
+      plugins: {
+        legend: { display:true, labels: { color:'#8892a4', font:{size:11}, boxWidth:16, padding:16 } },
+        tooltip: {
+          backgroundColor:'#111318', borderColor:'#1e2330', borderWidth:1,
+          titleColor:'#eef0f5', bodyColor:'#8892a4', padding:12,
+          callbacks: {
+            afterBody: (items) => {
+              const act = items.find(i => i.dataset.label === 'Actual followers');
+              const exp = items.find(i => i.dataset.label === 'Expected pace');
+              if (act && exp && act.raw != null && exp.raw != null) {
+                const g = act.raw - exp.raw;
+                return [`Gap: ${g >= 0 ? '+' : ''}${g} vs pace`];
+              }
+              return [];
+            }
+          }
+        }
+      },
+      scales: {
+        x: { grid:{color:'#1a1e28'}, ticks:{maxRotation:0, font:{size:10}} },
+        y: { min: 990, max: 1600, grid:{color:'#1a1e28'}, ticks:{font:{size:10}}, title:{display:true, text:'Followers', color:'#5a6175', font:{size:10}} }
+      }
+    }
+  });
+
+  // Reach chart
+  const reachData = sortedPosts.map(p => p.reach);
+  if (charts.reach) charts.reach.destroy();
+  charts.reach = new Chart(document.getElementById('reachChart'), {
+    type: 'bar',
+    data: {
+      labels: postLabels,
+      datasets: [{ label:'Reach', data: reachData,
+        backgroundColor: reachData.map(v => v >= 5000 ? 'rgba(61,232,158,0.7)' : v >= 2500 ? 'rgba(77,159,255,0.55)' : 'rgba(245,200,66,0.4)'),
+        borderColor:'transparent', borderRadius:2 }]
+    },
+    options: { responsive:true, plugins:{ legend:{display:false}, tooltip:{backgroundColor:'#111318',borderColor:'#1e2330',borderWidth:1,titleColor:'#eef0f5',bodyColor:'#8892a4',padding:10} }, scales:{ x:{grid:{display:false},ticks:{font:{size:9},maxRotation:45}}, y:{grid:{color:'#1a1e28'},ticks:{font:{size:10}}} } }
+  });
+
+  // ER chart
+  if (charts.er) charts.er.destroy();
+  charts.er = new Chart(document.getElementById('erChart'), {
+    type: 'line',
+    data: {
+      labels: postLabels,
+      datasets: [
+        { label:'ER %', data: sortedPosts.map(p => Math.min(p.er, 60)), borderColor:'#3de89e', backgroundColor:'rgba(61,232,158,0.06)', fill:true, tension:0.4, pointBackgroundColor:'#3de89e', pointRadius:4, borderWidth:2 },
+        { label:'Min 15%', data: sortedPosts.map(()=>15), borderColor:'rgba(255,77,109,0.4)', borderDash:[4,3], pointRadius:0, borderWidth:1.5, fill:false }
+      ]
+    },
+    options: { responsive:true, plugins:{ legend:{display:true,labels:{color:'#5a6175',font:{size:11},boxWidth:14}}, tooltip:{backgroundColor:'#111318',borderColor:'#1e2330',borderWidth:1,titleColor:'#eef0f5',bodyColor:'#8892a4',padding:10} }, scales:{ x:{grid:{display:false},ticks:{font:{size:9},maxRotation:45}}, y:{grid:{color:'#1a1e28'},ticks:{font:{size:10},callback:v=>v+'%'},min:0} } }
+  });
+
+  // Rolling avg reach
+  if (charts.rolling) charts.rolling.destroy();
+  charts.rolling = new Chart(document.getElementById('rollingChart'), {
+    type: 'line',
+    data: {
+      labels: postLabels,
+      datasets: [
+        { label:'Rolling Avg Reach', data: sortedPosts.map(p => p.avgReach), borderColor:'#4d9fff', backgroundColor:'rgba(77,159,255,0.07)', fill:true, tension:0.4, pointBackgroundColor:'#4d9fff', pointRadius:3, borderWidth:2 },
+        { label:'Target 2,500', data: sortedPosts.map(()=>2500), borderColor:'rgba(61,232,158,0.4)', borderDash:[5,3], pointRadius:0, borderWidth:1.5, fill:false }
+      ]
+    },
+    options: { responsive:true, interaction:{mode:'index',intersect:false}, plugins:{ legend:{display:true,labels:{color:'#5a6175',font:{size:11},boxWidth:14}}, tooltip:{backgroundColor:'#111318',borderColor:'#1e2330',borderWidth:1,titleColor:'#eef0f5',bodyColor:'#8892a4',padding:10} }, scales:{ x:{grid:{display:false},ticks:{font:{size:9},maxRotation:45}}, y:{grid:{color:'#1a1e28'},ticks:{font:{size:10}}} } }
+  });
+
+  // ── CONTENT MIX
+  const mixColors = { Reel:'reel', Carousel:'carousel', Post:'post', Kolonne1:'post' };
+  const mixGrid = document.getElementById('mix-grid');
+  mixGrid.innerHTML = '';
+  const totalPosts = stats.validPosts.length;
+  Object.entries(stats.formats).sort((a,b) => b[1].count - a[1].count).forEach(([fmt, fx]) => {
+    const cls = mixColors[fmt] || 'post';
+    mixGrid.innerHTML += `
+      <div class="mix-card">
+        <div class="mix-type">${fmt}</div>
+        <div class="mix-share ${cls}">${fx.pct}%</div>
+        <div class="mix-stats">
+          <div class="mix-stat">Avg Reach: <span>${fx.avgReach.toLocaleString()}</span></div>
+          <div class="mix-stat">Avg ER: <span>${fx.avgER}%</span></div>
+          <div class="mix-stat">Avg Engagement: <span>${fx.avgEngagement}</span></div>
+          <div class="mix-stat">Posts: <span>${fx.count} of ${totalPosts}</span></div>
+        </div>
+      </div>`;
+  });
+
+  // ── PILLARS
+  const pillarColors = { Forberedelse: { border:'var(--blue)', text:'var(--blue)', icon:'🎯' }, Performance: { border:'var(--green)', text:'var(--green)', icon:'⚡' } };
+  const pillarGrid = document.getElementById('pillar-grid');
+  pillarGrid.innerHTML = '';
+  Object.entries(stats.pillars).forEach(([pl, px]) => {
+    const c = pillarColors[pl] || { border:'var(--accent)', text:'var(--accent)', icon:'📌' };
+    pillarGrid.innerHTML += `
+      <div class="pillar-card" style="border-top:3px solid ${c.border}">
+        <div class="pillar-name" style="color:${c.text}">${c.icon} ${pl}</div>
+        <div class="pillar-stats">
+          <div><div class="pillar-stat-val">${px.count}</div><div class="pillar-stat-lbl">Posts</div></div>
+          <div><div class="pillar-stat-val">${px.avgReach.toLocaleString()}</div><div class="pillar-stat-lbl">Avg Reach</div></div>
+          <div><div class="pillar-stat-val" style="color:${c.text}">${px.avgER}%</div><div class="pillar-stat-lbl">Avg ER</div></div>
+        </div>
+      </div>`;
+  });
+
+  // ── POST TABLE
+  const tbody = document.getElementById('postTable');
+  tbody.innerHTML = '';
+  sortedPosts.slice().reverse().forEach(p => {
+    const erClass = p.er >= 30 ? 'er-high' : p.er >= 15 ? 'er-mid' : 'er-low';
+    const fmt = (p.format || 'Post').toLowerCase();
+    const fmtTag = `<span class="format-tag ${fmt}">${p.format || 'Post'}</span>`;
+    tbody.innerHTML += `<tr>
+      <td class="muted">${p.date.substring(0,5)}</td>
+      <td>${p.title}</td>
+      <td>${fmtTag}</td>
+      <td class="muted">${p.pillar}</td>
+      <td>${p.reach.toLocaleString()}</td>
+      <td class="${erClass}">${p.er.toFixed(1)}%</td>
+      <td>${p.engagement.toLocaleString()}</td>
+      <td>${p.newFollowers > 0 ? '+'+p.newFollowers : '—'}</td>
+      <td>${p.url ? `<a href="${p.url}" target="_blank" class="ig-link">↗ IG</a>` : '—'}</td>
+    </tr>`;
+  });
+}
+
+// ─────────────────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────────────────
+async function init() {
+  try {
+    const json  = await fetchSheetData();
+    const posts = parseRows(json);
+    if (!posts.length) throw new Error('No post data found in the sheet. Make sure the sheet is set to "Anyone with the link can view".');
+    const stats = computeStats(posts);
+    document.getElementById('loading').style.display   = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    renderDashboard(posts, stats);
+  } catch (err) {
+    document.getElementById('loading').style.display    = 'none';
+    document.getElementById('error-state').style.display = 'flex';
+    document.getElementById('error-msg').innerHTML =
+      `<strong>${err.message}</strong><br><br>
+       Make sure the Google Sheet is set to <em>"Anyone with the link can view"</em>:<br>
+       Sheet → Share → Change to Anyone with the link → Viewer.<br><br>
+       The Sheet ID in this file is: <code>${SHEET_ID}</code>`;
+  }
+}
+
+init();
+</script>
+</body>
+</html>
