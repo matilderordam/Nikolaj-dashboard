@@ -578,7 +578,12 @@ function parseRows(rows) {
 function computeStats(posts) {
   if (!posts.length) return null;
 
-  // Latest follower count = followers at most recent post
+  // Phase posts only (30/04/2026 onwards) — used for all KPIs, charts, mix, pillars
+  const PHASE_CUTOFF = new Date('2026-04-30');
+  const phasePosts = posts.filter(p => parseDate(p.date) >= PHASE_CUTOFF);
+  const activePosts = phasePosts.length ? phasePosts : posts; // fallback
+
+  // Latest follower count = followers at most recent post (all posts)
   const sorted = [...posts].sort((a,b) => parseDate(b.date) - parseDate(a.date));
   const latestFollowers = sorted[0].followers;
   const latestDate      = sorted[0].date;
@@ -589,19 +594,20 @@ function computeStats(posts) {
   const expectedToday = Math.round(BASELINE_FOLLOWERS + (TARGET_FOLLOWERS - BASELINE_FOLLOWERS) * (daysIn / PHASE_DAYS));
   const gap = latestFollowers - expectedToday;
 
-  // Posts in last 28 days
+  // Posts in last 28 days (phase only)
   const cutoff = new Date(today - 28*86400000);
-  const recentPosts = posts.filter(p => parseDate(p.date) >= cutoff);
+  const recentPosts = activePosts.filter(p => parseDate(p.date) >= cutoff);
 
-  // Avg reach + ER across all posts (exclude outliers? No — show real)
-  const validPosts = posts.filter(p => p.reach > 0);
+  // Avg reach + ER — phase posts only
+  const validPosts = activePosts.filter(p => p.reach > 0);
   const avgReach   = validPosts.length ? Math.round(validPosts.reduce((s,p) => s+p.reach, 0) / validPosts.length) : 0;
   const avgER      = validPosts.length ? +(validPosts.reduce((s,p) => s+p.er, 0) / validPosts.length).toFixed(1) : 0;
 
-  // Running avg reach — last value from posts
-  const lastAvgReach = sorted[0].avgReach || avgReach;
+  // Running avg reach — last value from phase posts
+  const phasesSorted = [...activePosts].sort((a,b) => parseDate(b.date) - parseDate(a.date));
+  const lastAvgReach = phasesSorted[0]?.avgReach || avgReach;
 
-  // Content mix
+  // Content mix — phase posts only
   const formats = {};
   validPosts.forEach(p => {
     const f = p.format || 'Other';
@@ -638,7 +644,7 @@ function computeStats(posts) {
 
   return { latestFollowers, latestDate, expectedToday, gap, daysIn,
            recentCount: recentPosts.length, avgReach, avgER, lastAvgReach,
-           formats, pillars, validPosts, sorted };
+           formats, pillars, validPosts, sorted, allPosts: posts };
 }
 
 function parseDate(str) {
@@ -657,7 +663,7 @@ function renderDashboard(posts, stats) {
   document.getElementById('last-updated').textContent = new Date().toLocaleString('en-GB', {
     day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'
   });
-  document.getElementById('post-count').textContent = `${posts.length} posts tracked`;
+  // post-count set in table section
 
   // ── KPI CARDS
   const { latestFollowers, expectedToday, gap, latestDate } = stats;
@@ -740,7 +746,9 @@ function renderDashboard(posts, stats) {
   Chart.defaults.borderColor = '#1e2330';
   Chart.defaults.font.family = "'Barlow', sans-serif";
 
-  const sortedPosts = [...posts].sort((a,b) => parseDate(a.date) - parseDate(b.date));
+  // Charts + mix use phase posts only; table uses all posts
+  const sortedPosts = [...stats.validPosts].sort((a,b) => parseDate(a.date) - parseDate(b.date));
+  const allSortedPosts = [...stats.allPosts].sort((a,b) => parseDate(b.date) - parseDate(a.date));
   const postLabels  = sortedPosts.map(p => p.date.substring(0,5));
 
   // Follower chart with expected pace
@@ -907,10 +915,11 @@ function renderDashboard(posts, stats) {
       </div>`;
   });
 
-  // ── POST TABLE
+  // ── POST TABLE — all posts including pre-phase
+  document.getElementById('post-count').textContent = `${stats.allPosts.length} posts tracked`;
   const tbody = document.getElementById('postTable');
   tbody.innerHTML = '';
-  sortedPosts.slice().reverse().forEach(p => {
+  allSortedPosts.forEach(p => {
     const erClass = p.er >= 30 ? 'er-high' : p.er >= 15 ? 'er-mid' : 'er-low';
     const fmt = (p.format || 'Post').toLowerCase();
     const fmtTag = `<span class="format-tag ${fmt}">${p.format || 'Post'}</span>`;
