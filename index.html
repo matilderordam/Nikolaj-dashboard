@@ -464,7 +464,8 @@
 // CONFIG — update SHEET_ID if the spreadsheet changes
 // ─────────────────────────────────────────────────────────
 const SHEET_ID  = '1yhdQ6ebK67CjA_L2lEB12nrTMPxybO4jmodjhtUqkSk';
-const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+// sheet=Post+Tracking targets the second tab by name
+const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Post+Tracking`;
 
 // Phase constants
 const BASELINE_FOLLOWERS  = 1023;
@@ -521,14 +522,24 @@ function parseRows(json) {
       return String(cells[i].v).trim();
     };
 
-    // Column order (0-indexed) from the sheet:
-    // 0:date_posted 1:date_reported 2:title 3:link 4:format 5:pillar
-    // 6:followers_posted 7:followers_reported 8:likes 9:comments 10:sends
-    // 11:repost 12:saves 13:reach 14:views 15:profile_visits 16:new_followers
-    // 17:followers_pct 18:non_followers_pct 19:er_pct 20:avg_reach_running 21:total_engagement
+    // Column order (0-indexed) matching "Post Tracking" sheet:
+    // A=0:dato_postet  B=1:dato_rapporteret  C=2:titel  D=3:link
+    // E=4:format       F=5:content_pillar
+    // G=6:foelgere_postet  H=7:foelgere_rapport
+    // I=8:likes  J=9:comments  K=10:sends  L=11:repost  M=12:saves
+    // N=13:reach  O=14:views  P=15:profile_visits  Q=16:new_followers
+    // R=17:foelgere_pct  S=18:ikke_foelgere_pct
+    // T=19:er_pct_auto  U=20:avg_reach_loebende
 
-    const erRaw = g(19, null);
-    if (erRaw === null && g(13, 0) === 0) continue; // skip empty rows
+    const reach  = g(13, 0);
+    const erRaw  = g(19, 0);
+    // Total engagement = likes + comments + sends + repost + saves
+    const totalEng = g(8) + g(9) + g(10) + g(11) + g(12);
+
+    if (reach === 0 && erRaw === 0) continue; // skip empty rows
+
+    // ER: sheet stores as decimal (0.216) or percentage (21.6) — detect which
+    const erVal = erRaw > 1 ? erRaw : erRaw * 100;
 
     posts.push({
       date:         dateStr,
@@ -536,10 +547,10 @@ function parseRows(json) {
       url:          gs(3),
       format:       gs(4),
       pillar:       gs(5) || '—',
-      followers:    g(6),
-      reach:        g(13),
-      er:           erRaw !== null ? erRaw : 0,
-      engagement:   g(21),
+      followers:    g(7) || g(6),  // col H (report date) else col G (post date)
+      reach:        reach,
+      er:           erVal,
+      engagement:   totalEng,
       newFollowers: g(16),
       avgReach:     g(20),
     });
