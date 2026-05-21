@@ -256,6 +256,39 @@
 
   .footnote { font-size: 11px; color: var(--muted); padding: 0 40px; max-width: 1200px; margin: 0 auto; }
 
+  /* ── RECENT POST CARDS ── */
+  .recent-post-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 0;
+    overflow: hidden;
+    animation: fadeUp 0.4s both;
+  }
+  .rp-main {
+    padding: 18px 22px;
+    border-right: 1px solid var(--border);
+  }
+  .rp-tag { display:inline-block; font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:2px 8px; border-radius:2px; margin-bottom:10px; }
+  .rp-title { font-family:"Barlow Condensed",sans-serif; font-size:22px; font-weight:900; line-height:1.1; color:var(--text); margin-bottom:4px; }
+  .rp-meta { font-size:11px; color:var(--muted); margin-bottom:10px; }
+  .rp-notice { font-size:10px; color:var(--accent); font-weight:600; letter-spacing:1px; text-transform:uppercase; background:rgba(245,200,66,0.08); display:inline-block; padding:2px 8px; border-radius:2px; margin-bottom:10px; }
+  .rp-link { font-size:11px; color:var(--label); text-decoration:none; opacity:0.7; transition:opacity 0.2s, color 0.2s; }
+  .rp-link:hover { opacity:1; color:var(--accent); }
+  .rp-stat {
+    padding: 18px 20px;
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .rp-stat:last-child { border-right: none; }
+  .rp-stat-label { font-size:9px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
+  .rp-stat-value { font-family:"Barlow Condensed",sans-serif; font-size:36px; font-weight:900; line-height:1; }
+  .rp-stat-sub { font-size:10px; color:var(--muted); margin-top:3px; }
+  .rp-stat-pending { font-size:12px; color:var(--muted); font-style:italic; }
+  @media (max-width:900px) { .recent-post-card { grid-template-columns: 1fr 1fr; } .rp-main { grid-column: 1/-1; } }
+
   /* ── STATUS CARDS ── */
   .status-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
   .status-card {
@@ -379,57 +412,14 @@
     </div>
   </div>
 
-  <div class="section-title">Goal Progress · vs. Time</div>
-  <div class="progress-section">
-    <div class="progress-card">
-      <div class="progress-header">
-        <div>
-          <div class="progress-name">Follower Growth</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:4px;">1,023 → 1,535 target (+50%)</div>
-        </div>
-        <div class="progress-numbers" id="prog-follower-txt">—</div>
-      </div>
-      <div class="progress-track" style="margin-top:18px;" id="prog-follower-track">
-        <div class="progress-fill" id="prog-follower-fill" style="width:0%"></div>
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:8px;">
-        <span>1,023 (Apr 1)</span>
-        <span style="color:var(--accent2);" id="prog-follower-exp">—</span>
-        <span>1,535 (Oct 1)</span>
-      </div>
+
+
+  <div class="section-title">Current · Last 7 Days</div>
+  <div id="recent-posts-section">
+    <div id="recent-posts-empty" style="display:none;background:var(--surface);border:1px solid var(--border);padding:20px 24px;font-size:13px;color:var(--muted);margin-bottom:32px;">
+      No posts in the last 7 days.
     </div>
-    <div class="status-pair">
-      <div class="status-card" id="status-reach">
-        <div class="status-left">
-          <div class="progress-name">Avg. Reach</div>
-          <div class="status-sub">Target: 2,500 by Oct · Baseline: 1,350</div>
-          <div class="status-current" id="sc-reach">—</div>
-          <div class="status-delta" id="sd-reach">—</div>
-        </div>
-        <div class="status-right">
-          <div class="status-vs">
-            <div class="status-vs-label">Target</div>
-            <div class="status-vs-num">2,500</div>
-          </div>
-          <div class="status-badge" id="sb-reach">—</div>
-        </div>
-      </div>
-      <div class="status-card" id="status-er">
-        <div class="status-left">
-          <div class="progress-name">Engagement Rate</div>
-          <div class="status-sub">Floor: ≥15% · Baseline: 19%</div>
-          <div class="status-current" id="sc-er">—</div>
-          <div class="status-delta" id="sd-er">—</div>
-        </div>
-        <div class="status-right">
-          <div class="status-vs">
-            <div class="status-vs-label">Minimum</div>
-            <div class="status-vs-num">15%</div>
-          </div>
-          <div class="status-badge" id="sb-er">—</div>
-        </div>
-      </div>
-    </div>
+    <div id="recent-posts-grid" style="display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:32px;"></div>
   </div>
 
   <div class="section-title">Trends Over Time</div>
@@ -578,7 +568,7 @@ function parseRows(rows) {
       url:          gs(3),
       format:       gs(4) || 'Post',
       pillar:       gs(5) || '—',
-      followers:    gn(7) || gn(6),
+      followers:    gn(6),          // col G = followers at post date (always populated)
       reach:        reach,
       views:        gn(14),
       er:           erVal,
@@ -711,61 +701,7 @@ function renderDashboard(posts, stats) {
   document.getElementById('kb-cadence').className   = `badge ${cadOT ? 'green' : 'yellow'}`;
   document.getElementById('kpi-cadence').className  = `kpi-card ${cadOT ? 'on-track' : 'warn'}`;
 
-  // ── PROGRESS BARS
-  // Followers
-  const followerProgress = Math.min(100, ((latestFollowers - BASELINE_FOLLOWERS) / (TARGET_FOLLOWERS - BASELINE_FOLLOWERS)) * 100);
-  const timePct = Math.min(100, (stats.daysIn / PHASE_DAYS) * 100);
 
-  const followerTrack = document.getElementById('prog-follower-track');
-  // Remove existing markers first
-  followerTrack.querySelectorAll('.track-marker').forEach(el => el.remove());
-  // Add now marker
-  const nowM = document.createElement('div');
-  nowM.className = 'track-marker now';
-  nowM.style.left = timePct + '%';
-  nowM.innerHTML = `<div class="marker-label">Now</div>`;
-  followerTrack.appendChild(nowM);
-  // Add target marker
-  const tgtM = document.createElement('div');
-  tgtM.className = 'track-marker target-mark';
-  tgtM.style.left = '100%';
-  tgtM.innerHTML = `<div class="marker-label">Target</div>`;
-  followerTrack.appendChild(tgtM);
-
-  const fillColor = followerOnTrack ? 'green' : 'red';
-  const fillEl = document.getElementById('prog-follower-fill');
-  fillEl.className = `progress-fill ${fillColor}`;
-  setTimeout(() => { fillEl.style.width = followerProgress + '%'; }, 200);
-
-  document.getElementById('prog-follower-txt').innerHTML =
-    `<strong style="color:var(--text);font-size:15px;">${latestFollowers.toLocaleString()}</strong> current<br>
-     <span style="color:${followerOnTrack ? 'var(--green)' : 'var(--red)'};">${followerProgress.toFixed(1)}% of goal · ${gap >= 0 ? '+'+gap : gap} vs pace</span>`;
-  document.getElementById('prog-follower-exp').textContent = `Expected now: ~${expectedToday.toLocaleString()}`;
-
-  // Reach status card
-  const reachVsTarget = stats.avgReach - 2500;
-  const reachVsBase   = stats.avgReach - 1350;
-  document.getElementById('sc-reach').textContent = stats.avgReach.toLocaleString();
-  document.getElementById('sc-reach').style.color = reachOT ? 'var(--green)' : 'var(--accent)';
-  document.getElementById('sd-reach').textContent = `${reachVsBase >= 0 ? '+' : ''}${reachVsBase.toLocaleString()} vs baseline · ${reachVsTarget >= 0 ? '+' : ''}${reachVsTarget.toLocaleString()} vs target`;
-  document.getElementById('sb-reach').textContent = reachOT ? '✓ Target exceeded' : 'Below target';
-  document.getElementById('sb-reach').className   = `status-badge ${reachOT ? 'green' : 'red'}`;
-  document.getElementById('status-reach').style.borderTopColor = reachOT ? 'var(--green)' : 'var(--red)';
-  document.getElementById('status-reach').style.borderTopWidth = '3px';
-  document.getElementById('status-reach').style.borderTopStyle = 'solid';
-
-  // ER status card
-  const erOTStatus = stats.avgER >= 15;
-  const erVsBase   = stats.avgER - 19;
-  const erVsFloor  = stats.avgER - 15;
-  document.getElementById('sc-er').textContent = stats.avgER + '%';
-  document.getElementById('sc-er').style.color = erOTStatus ? 'var(--green)' : 'var(--red)';
-  document.getElementById('sd-er').textContent = `${erVsBase >= 0 ? '+' : ''}${erVsBase.toFixed(1)}pp vs baseline · ${erVsFloor >= 0 ? '+' : ''}${erVsFloor.toFixed(1)}pp above floor`;
-  document.getElementById('sb-er').textContent = erOTStatus ? '✓ Above floor' : '⚠ Below 15% floor';
-  document.getElementById('sb-er').className   = `status-badge ${erOTStatus ? 'green' : 'red'}`;
-  document.getElementById('status-er').style.borderTopColor = erOTStatus ? 'var(--green)' : 'var(--red)';
-  document.getElementById('status-er').style.borderTopWidth = '3px';
-  document.getElementById('status-er').style.borderTopStyle = 'solid';
 
   // ── CHARTS
   Chart.defaults.color = '#5a6175';
@@ -865,6 +801,63 @@ function renderDashboard(posts, stats) {
   });
 
 
+
+  // ── RECENT POSTS (last 7 days — from allPosts so nothing is excluded)
+  const sevenDaysAgo = new Date(new Date() - 7 * 86400000);
+  const recentSeven = stats.allPosts
+    .filter(p => parseDate(p.date) >= sevenDaysAgo)
+    .sort((a,b) => parseDate(b.date) - parseDate(a.date));
+
+  const recentGrid  = document.getElementById('recent-posts-grid');
+  const recentEmpty = document.getElementById('recent-posts-empty');
+  recentGrid.innerHTML = '';
+
+  if (!recentSeven.length) {
+    recentEmpty.style.display = 'block';
+    recentGrid.style.display  = 'none';
+  } else {
+    recentEmpty.style.display = 'none';
+    recentGrid.style.display  = 'grid';
+    const fmtColors = { reel:'var(--green)', carousel:'var(--blue)', post:'var(--accent2)' };
+
+    recentSeven.forEach(p => {
+      const fmtCls   = (p.format||'post').toLowerCase();
+      const fmtColor = fmtColors[fmtCls] || 'var(--accent)';
+      const hasData  = p.reach > 0;
+      const daysAgo  = Math.round((new Date() - parseDate(p.date)) / 86400000);
+      const daysLabel = daysAgo === 0 ? 'Today' : daysAgo === 1 ? 'Yesterday' : `${daysAgo} days ago`;
+
+      // Reporting window: data available 14 days after posting
+      const reportDate = new Date(parseDate(p.date).getTime() + 14*86400000);
+      const daysUntilReport = Math.ceil((reportDate - new Date()) / 86400000);
+      const reportLabel = daysUntilReport > 0
+        ? `Full data in ~${daysUntilReport} day${daysUntilReport > 1 ? 's' : ''}`
+        : 'Data available';
+
+      const statHTML = (label, value, sub, color) => `
+        <div class="rp-stat">
+          <div class="rp-stat-label">${label}</div>
+          ${hasData && value != null
+            ? `<div class="rp-stat-value" style="color:${color}">${value}</div><div class="rp-stat-sub">${sub}</div>`
+            : `<div class="rp-stat-pending">Pending</div><div class="rp-stat-sub">${reportLabel}</div>`
+          }
+        </div>`;
+
+      recentGrid.innerHTML += `
+        <div class="recent-post-card" style="border-left-color:${fmtColor}">
+          <div class="rp-main">
+            <span class="rp-tag format-tag ${fmtCls}">${p.format || 'Post'}</span>
+            <div class="rp-title">${p.title}</div>
+            <div class="rp-meta">${daysLabel} · ${p.date.substring(0,5)} · ${p.pillar !== '—' ? p.pillar : 'Untagged'}</div>
+            ${!hasData ? `<div class="rp-notice">⏳ Awaiting data · ${reportLabel}</div>` : ''}
+            ${p.url ? `<a href="${p.url}" target="_blank" class="rp-link">↗ View on Instagram</a>` : ''}
+          </div>
+          ${statHTML('Reach', hasData ? p.reach.toLocaleString() : null, `vs avg ${stats.avgReach.toLocaleString()}`, 'var(--green)')}
+          ${statHTML('Engagement Rate', hasData ? p.er.toFixed(1)+'%' : null, `vs avg ${stats.avgER}%`, 'var(--accent)')}
+          ${statHTML('New Followers', hasData ? '+'+p.newFollowers : null, `${p.engagement.toLocaleString()} engagements`, 'var(--blue)')}
+        </div>`;
+    });
+  }
 
   // ── BEST POST
   const validForBest = stats.validPosts.filter(p => p.reach > 0);
