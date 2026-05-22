@@ -587,7 +587,7 @@ function computeStats(posts) {
   if (!posts.length) return null;
 
   // Phase posts only (30/04/2026 onwards) — used for all KPIs, charts, mix, pillars
-  const PHASE_CUTOFF = new Date('2026-04-30');
+  const PHASE_CUTOFF = new Date('2026-04-29'); // 30/04 and later = phase
   const phasePosts = posts.filter(p => parseDate(p.date) >= PHASE_CUTOFF);
   const activePosts = phasePosts.length ? phasePosts : posts; // fallback
 
