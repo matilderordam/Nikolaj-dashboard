@@ -598,8 +598,10 @@ function computeStats(posts) {
 
   // Today's expected pace
   const today = new Date();
-  const daysIn = Math.max(0, (today - PHASE_START) / 86400000);
-  const expectedToday = Math.round(BASELINE_FOLLOWERS + (TARGET_FOLLOWERS - BASELINE_FOLLOWERS) * (daysIn / PHASE_DAYS));
+  const PHASE_CHART_START = new Date('2026-04-30');
+  const PHASE_CHART_DAYS  = (PHASE_END - PHASE_CHART_START) / 86400000; // 154 days
+  const daysIn = Math.max(0, (today - PHASE_CHART_START) / 86400000);
+  const expectedToday = Math.round(BASELINE_FOLLOWERS + (TARGET_FOLLOWERS - BASELINE_FOLLOWERS) * (daysIn / PHASE_CHART_DAYS));
   const gap = latestFollowers - expectedToday;
 
   // Posts in last 28 days (phase only)
