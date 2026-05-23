@@ -715,11 +715,13 @@ function renderDashboard(posts, stats) {
 
   // Follower chart with expected pace
 
-  // Build a full timeline from Apr 1 → Oct 1 with monthly markers + actual post dates
-  // Monthly backbone: Apr 1, May 1, Jun 1, Jul 1, Aug 1, Sep 1, Oct 1
+  // Build timeline from 30/04 (phase start) → 01/10 (target)
+  // PHASE_START for chart = 30 Apr, not 1 Apr
+  const CHART_START = new Date('2026-04-30');
+  const CHART_END   = new Date('2026-10-01');
+
   const monthPoints = [
-    { label: '01/04', date: new Date('2026-04-01') },
-    { label: '01/05', date: new Date('2026-05-01') },
+    { label: '30/04', date: new Date('2026-04-30') },
     { label: '01/06', date: new Date('2026-06-01') },
     { label: '01/07', date: new Date('2026-07-01') },
     { label: '01/08', date: new Date('2026-08-01') },
@@ -727,15 +729,15 @@ function renderDashboard(posts, stats) {
     { label: '01/10', date: new Date('2026-10-01') },
   ];
 
-  // Merge post dates into timeline, deduplicate, sort
+  // Merge phase post dates into timeline
   const allTimelinePoints = [...monthPoints];
   sortedPosts.forEach(p => {
     const pd = parseDate(p.date);
+    if (pd < CHART_START) return; // skip pre-phase posts
     const label = p.date.substring(0,5);
     if (!allTimelinePoints.find(pt => pt.label === label)) {
       allTimelinePoints.push({ label, date: pd, isPost: true, followers: p.followers });
     } else {
-      // annotate the existing point
       const existing = allTimelinePoints.find(pt => pt.label === label);
       existing.isPost = true;
       existing.followers = p.followers;
@@ -745,24 +747,25 @@ function renderDashboard(posts, stats) {
 
   const today = new Date();
 
-  // Build datasets
+  // Expected pace: linear from 1,023 on 30/04 → 1,535 on 01/10
+  const CHART_DAYS = (CHART_END - CHART_START) / 86400000; // 154 days
+
   const tlLabels   = allTimelinePoints.map(pt => pt.label);
   const tlActual   = allTimelinePoints.map(pt => {
-    if (pt.date > today) return null;           // future — no data
-    if (pt.isPost) return pt.followers;          // known value from post
-    // interpolate between nearest known post values
-    const before = [...sortedPosts].reverse().find(p => parseDate(p.date) <= pt.date);
-    return before ? before.followers : null;
+    if (pt.date > today) return null;
+    if (pt.isPost) return pt.followers;
+    // carry forward last known value
+    const before = [...sortedPosts]
+      .filter(p => parseDate(p.date) >= CHART_START)
+      .reverse()
+      .find(p => parseDate(p.date) <= pt.date);
+    return before ? before.followers : BASELINE_FOLLOWERS;
   });
   const tlExpected = allTimelinePoints.map(pt => {
-    const d = (pt.date - PHASE_START) / 86400000;
-    if (d < 0) return BASELINE_FOLLOWERS;
-    return Math.round(BASELINE_FOLLOWERS + (TARGET_FOLLOWERS - BASELINE_FOLLOWERS) * (d / PHASE_DAYS));
+    const d = (pt.date - CHART_START) / 86400000;
+    const clamped = Math.max(0, d);
+    return Math.round(BASELINE_FOLLOWERS + (TARGET_FOLLOWERS - BASELINE_FOLLOWERS) * (clamped / CHART_DAYS));
   });
-
-  // "Today" annotation value on the expected line
-  const todayDays = (today - PHASE_START) / 86400000;
-  const todayExpected = Math.round(BASELINE_FOLLOWERS + (TARGET_FOLLOWERS - BASELINE_FOLLOWERS) * (todayDays / PHASE_DAYS));
 
   if (charts.follower) charts.follower.destroy();
   charts.follower = new Chart(document.getElementById('followerChart'), {
