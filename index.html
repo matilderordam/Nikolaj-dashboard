@@ -983,7 +983,7 @@ function renderDashboard(posts, stats) {
   });
 
   // ── PILLARS
-  const pillarColors = { Forberedelse: { border:'var(--blue)', text:'var(--blue)', icon:'🎯' }, Performance: { border:'var(--green)', text:'var(--green)', icon:'⚡' } };
+  const pillarColors = { Forberedelse: { border:'var(--blue)', text:'var(--blue)', icon:'🎯' }, Performance: { border:'var(--green)', text:'var(--green)', icon:'⚡' }, 'Niche MBT': { border:'var(--accent2)', text:'var(--accent2)', icon:'🚵' } };
   const pillarGrid = document.getElementById('pillar-grid');
   pillarGrid.innerHTML = '';
   Object.entries(stats.pillars).forEach(([pl, px]) => {
