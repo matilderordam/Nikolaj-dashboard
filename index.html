@@ -30,7 +30,7 @@
     padding: 0 0 60px 0;
   }
 
-  /* ── LOADING ── */
+  /* LOADING */
   #loading {
     display: flex;
     flex-direction: column;
@@ -55,7 +55,7 @@
     color: var(--muted);
   }
 
-  /* ── ERROR ── */
+  /* ERROR */
   #error-state {
     display: none;
     flex-direction: column;
@@ -83,10 +83,10 @@
     color: var(--accent);
   }
 
-  /* ── MAIN CONTENT ── */
+  /* MAIN CONTENT */
   #dashboard { display: none; }
 
-  /* ── HEADER ── */
+  /* HEADER */
   .header {
     background: var(--surface);
     border-bottom: 2px solid var(--accent);
@@ -121,10 +121,10 @@
   .header-right strong { color: var(--text); }
   #last-updated { color: var(--green); }
 
-  /* ── LAYOUT ── */
+  /* LAYOUT */
   .container { max-width: 1200px; margin: 0 auto; padding: 36px 40px 0; }
 
-  /* ── SECTION TITLE ── */
+  /* SECTION TITLE */
   .section-title {
     font-family: 'Barlow Condensed', sans-serif;
     font-size: 11px;
@@ -139,7 +139,7 @@
   }
   .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
-  /* ── FOLLOWER HERO ── */
+  /* FOLLOWER HERO */
   .follower-hero {
     display: grid;
     grid-template-columns: 1fr auto 1fr 1fr;
@@ -172,7 +172,7 @@
   .fh-gap-sub { font-size: 10px; color: var(--red); opacity: 0.7; max-width: 100px; line-height: 1.4; }
   .fh-gap-sub.ahead { color: var(--green); }
 
-  /* ── KPI CARDS ── */
+  /* KPI CARDS */
   .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 32px; }
   .kpi-card {
     background: var(--surface); border: 1px solid var(--border);
@@ -191,7 +191,7 @@
   .badge.yellow { background: rgba(245,200,66,0.15); color: var(--accent); }
   .badge.red { background: rgba(255,77,109,0.15); color: var(--red); }
 
-  /* ── PROGRESS ── */
+  /* PROGRESS */
   .progress-section { margin-bottom: 32px; }
   .progress-card { background: var(--surface); border: 1px solid var(--border); padding: 20px 24px; margin-bottom: 10px; animation: fadeUp 0.5s both; }
   .progress-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px; }
@@ -209,13 +209,13 @@
   .track-marker.target-mark { background: var(--muted); }
   .track-marker.target-mark .marker-label { color: var(--muted); }
 
-  /* ── CHARTS ── */
+  /* CHARTS */
   .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 32px; }
   .chart-card { background: var(--surface); border: 1px solid var(--border); padding: 24px; animation: fadeUp 0.5s both; }
   .chart-card.wide { grid-column: 1 / -1; }
   .chart-title { font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--label); margin-bottom: 20px; }
 
-  /* ── CONTENT MIX ── */
+  /* CONTENT MIX */
   .mix-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 32px; }
   .mix-card { background: var(--surface); border: 1px solid var(--border); padding: 20px; animation: fadeUp 0.5s both; }
   .mix-type { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 900; text-transform: uppercase; margin-bottom: 4px; }
@@ -227,7 +227,7 @@
   .mix-stat { font-size: 12px; color: var(--label); }
   .mix-stat span { color: var(--text); font-weight: 600; }
 
-  /* ── PILLARS ── */
+  /* PILLARS */
   .pillar-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 32px; }
   .pillar-card { background: var(--surface); border: 1px solid var(--border); padding: 22px 24px; animation: fadeUp 0.5s both; }
   .pillar-name { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; }
@@ -235,7 +235,7 @@
   .pillar-stat-val { font-family: 'Barlow Condensed', sans-serif; font-size: 26px; font-weight: 800; line-height: 1; }
   .pillar-stat-lbl { font-size: 10px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
 
-  /* ── TABLE ── */
+  /* TABLE */
   .table-card { background: var(--surface); border: 1px solid var(--border); overflow: hidden; animation: fadeUp 0.5s both; margin-bottom: 32px; }
   .table-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-bottom: 1px solid var(--border); }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -256,7 +256,7 @@
 
   .footnote { font-size: 11px; color: var(--muted); padding: 0 40px; max-width: 1200px; margin: 0 auto; }
 
-  /* ── RECENT POST CARDS ── */
+  /* RECENT POST CARDS */
   .recent-post-card {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -289,7 +289,7 @@
   .rp-stat-pending { font-size:12px; color:var(--muted); font-style:italic; }
   @media (max-width:900px) { .recent-post-card { grid-template-columns: 1fr 1fr; } .rp-main { grid-column: 1/-1; } }
 
-  /* ── STATUS CARDS ── */
+  /* STATUS CARDS */
   .status-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
   .status-card {
     background: var(--surface); border: 1px solid var(--border);
@@ -309,7 +309,7 @@
   .status-badge.red { background: rgba(255,77,109,0.15); color: var(--red); }
   @media (max-width: 900px) { .status-pair { grid-template-columns: 1fr; } }
 
-  /* ── BEST POST ── */
+  /* BEST POST */
   .best-post {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr 1fr;
@@ -438,6 +438,29 @@
     </div>
   </div>
 
+  <div class="section-title">Weekly Conversion · Followers per 1,000 Reach</div>
+  <div class="chart-card wide" style="margin-bottom:16px;">
+    <div class="chart-title">Conversion Rate Per Week · Target ≥ 2.0</div>
+    <canvas id="conversionChart" height="80"></canvas>
+  </div>
+  <div class="table-card">
+    <div class="table-header">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Weekly Breakdown</div>
+      <div style="font-size:12px;color:var(--muted);" id="week-target-note">Target: 26 new followers/wk · rate ≥ 2.0</div>
+    </div>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Week (Mon)</th><th>Posts</th><th>Reach</th>
+            <th>New Followers</th><th>Rate /1k</th><th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="weekTable"></tbody>
+      </table>
+    </div>
+  </div>
+
   <div class="section-title">Best Performing Post</div>
   <div id="best-post-card"></div>
 
@@ -475,9 +498,7 @@
 </div><!-- /dashboard -->
 
 <script>
-// ─────────────────────────────────────────────────────────
 // CONFIG — update SHEET_ID if the spreadsheet changes
-// ─────────────────────────────────────────────────────────
 const SHEET_ID  = '1yhdQ6ebK67CjA_L2lEB12nrTMPxybO4jmodjhtUqkSk';
 const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=230932818`;
 
@@ -488,10 +509,11 @@ const PHASE_START         = new Date('2026-04-01');
 const PHASE_END           = new Date('2026-10-01');
 const PHASE_DAYS          = (PHASE_END - PHASE_START) / 86400000; // 183
 
-// ─────────────────────────────────────────────────────────
+// Weekly conversion targets (current estimate — adjust as the gap / weeks left change)
+const TARGET_WEEKLY_FOLLOWERS = 26;   // new followers/week needed to stay on pace
+const MIN_RATE                = 2.0;  // minimum conversion rate (followers per 1,000 reach)
+
 // FETCH + PARSE
-// ─────────────────────────────────────────────────────────
-// Parse CSV text into array of arrays
 function parseCSV(text) {
   const lines = text.split(/\r?\n/);
   return lines.map(line => {
@@ -529,11 +551,9 @@ function parseRows(rows) {
 
     // Normalise date to dd/mm/yyyy
     let dateStr = dateRaw;
-    // Handle dd.mm.yyyy or dd-mm-yyyy too
     dateStr = dateStr.replace(/[.\-]/g, '/');
     if (!/\d{2}\/\d{2}\/\d{4}/.test(dateStr)) continue;
 
-    // Helper: get numeric value from column, stripping % and replacing , with .
     const gn = (i, fallback = 0) => {
       if (i >= cols.length) return fallback;
       const raw = cols[i].replace(/"/g,'').replace('%','').replace(',','.').trim();
@@ -557,7 +577,6 @@ function parseRows(rows) {
     let erRaw   = gn(19, 0);
     if (reach === 0 && erRaw === 0) continue; // skip empty rows
 
-    // ER stored as 21,6% (percentage) or 0.216 (decimal) — normalise to number like 21.6
     const erVal = erRaw > 1 ? erRaw : erRaw * 100;
 
     const totalEng = gn(8) + gn(9) + gn(10) + gn(11) + gn(12);
@@ -580,44 +599,37 @@ function parseRows(rows) {
   return posts;
 }
 
-// ─────────────────────────────────────────────────────────
 // COMPUTE STATS
-// ─────────────────────────────────────────────────────────
 function computeStats(posts) {
   if (!posts.length) return null;
 
-  // Phase posts only (30/04/2026 onwards) — used for all KPIs, charts, mix, pillars
-  const PHASE_CUTOFF = new Date('2026-04-29'); // 30/04 and later = phase
+  // Phase posts only (30/04/2026 onwards)
+  const PHASE_CUTOFF = new Date('2026-04-29');
   const phasePosts = posts.filter(p => parseDate(p.date) >= PHASE_CUTOFF);
-  const activePosts = phasePosts.length ? phasePosts : posts; // fallback
+  const activePosts = phasePosts.length ? phasePosts : posts;
 
-  // Latest follower count = followers at most recent post (all posts)
   const sorted = [...posts].sort((a,b) => parseDate(b.date) - parseDate(a.date));
   const latestFollowers = sorted[0].followers;
   const latestDate      = sorted[0].date;
 
-  // Today's expected pace
   const today = new Date();
   const PHASE_CHART_START = new Date('2026-04-30');
-  const PHASE_CHART_DAYS  = (PHASE_END - PHASE_CHART_START) / 86400000; // 154 days
+  const PHASE_CHART_DAYS  = (PHASE_END - PHASE_CHART_START) / 86400000;
   const daysIn = Math.max(0, (today - PHASE_CHART_START) / 86400000);
   const expectedToday = Math.round(BASELINE_FOLLOWERS + (TARGET_FOLLOWERS - BASELINE_FOLLOWERS) * (daysIn / PHASE_CHART_DAYS));
   const gap = latestFollowers - expectedToday;
 
-  // Posts in last 28 days (phase only)
   const cutoff = new Date(today - 28*86400000);
   const recentPosts = activePosts.filter(p => parseDate(p.date) >= cutoff);
 
-  // Avg reach + ER — phase posts only
   const validPosts = activePosts.filter(p => p.reach > 0);
   const avgReach   = validPosts.length ? Math.round(validPosts.reduce((s,p) => s+p.reach, 0) / validPosts.length) : 0;
   const avgER      = validPosts.length ? +(validPosts.reduce((s,p) => s+p.er, 0) / validPosts.length).toFixed(1) : 0;
 
-  // Running avg reach — last value from phase posts
   const phasesSorted = [...activePosts].sort((a,b) => parseDate(b.date) - parseDate(a.date));
   const lastAvgReach = phasesSorted[0]?.avgReach || avgReach;
 
-  // Content mix — phase posts only
+  // Content mix
   const formats = {};
   validPosts.forEach(p => {
     const f = p.format || 'Other';
@@ -652,9 +664,26 @@ function computeStats(posts) {
     px.avgEngagement = Math.round(px.engagement / px.count);
   });
 
+  // Weekly conversion — phase posts with data only (reach > 0)
+  const weekMap = {};
+  validPosts.forEach(p => {
+    const d = parseDate(p.date);
+    const monday = mondayOf(d);
+    const key = isoKey(monday);
+    if (!weekMap[key]) weekMap[key] = { monday, posts:0, reach:0, followers:0 };
+    weekMap[key].posts++;
+    weekMap[key].reach     += p.reach;
+    weekMap[key].followers += p.newFollowers;
+  });
+  const weeks = Object.keys(weekMap).sort().map(k => {
+    const w = weekMap[k];
+    w.rate = w.reach > 0 ? +(w.followers / w.reach * 1000).toFixed(2) : 0;
+    return w;
+  });
+
   return { latestFollowers, latestDate, expectedToday, gap, daysIn,
            recentCount: recentPosts.length, avgReach, avgER, lastAvgReach,
-           formats, pillars, validPosts, sorted, allPosts: posts };
+           formats, pillars, validPosts, sorted, allPosts: posts, weeks };
 }
 
 function parseDate(str) {
@@ -663,19 +692,39 @@ function parseDate(str) {
   return new Date(+y, +m-1, +d);
 }
 
-// ─────────────────────────────────────────────────────────
+// Monday of the week for a given Date
+function mondayOf(d) {
+  const date = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const day = date.getDay();          // 0=Sun .. 6=Sat
+  const diff = (day === 0 ? -6 : 1 - day);
+  date.setDate(date.getDate() + diff);
+  return date;
+}
+function isoKey(d) {
+  const m = ('0'+(d.getMonth()+1)).slice(-2);
+  const day = ('0'+d.getDate()).slice(-2);
+  return d.getFullYear()+'-'+m+'-'+day;
+}
+function weekStatus(rate, followers, reach) {
+  const rateOk = rate >= MIN_RATE;
+  const volOk  = followers >= TARGET_WEEKLY_FOLLOWERS;
+  // Reach that should have been enough to hit the weekly target at MIN_RATE
+  const reachEnough = reach >= (TARGET_WEEKLY_FOLLOWERS / MIN_RATE * 1000);
+  if (rateOk && volOk)        return { label:'On track', cls:'green' };
+  if (rateOk && !volOk)       return { label:'Good targeting, low reach', cls:'yellow' };
+  if (!rateOk && reachEnough) return { label:'Reach wasted', cls:'red' };
+  return { label:'Weak week', cls:'red' };
+}
+
 // RENDER
-// ─────────────────────────────────────────────────────────
 let charts = {};
 
 function renderDashboard(posts, stats) {
-  // Timestamp
   document.getElementById('last-updated').textContent = new Date().toLocaleString('en-GB', {
     day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'
   });
-  // post-count set in table section
 
-  // ── KPI CARDS
+  // KPI CARDS
   const { latestFollowers, expectedToday, gap, latestDate } = stats;
   const followerPct = (((latestFollowers - BASELINE_FOLLOWERS) / (TARGET_FOLLOWERS - BASELINE_FOLLOWERS)) * 100).toFixed(1);
   const followerOnTrack = gap >= 0;
@@ -705,20 +754,16 @@ function renderDashboard(posts, stats) {
 
 
 
-  // ── CHARTS
+  // CHARTS
   Chart.defaults.color = '#5a6175';
   Chart.defaults.borderColor = '#1e2330';
   Chart.defaults.font.family = "'Barlow', sans-serif";
 
-  // Charts + mix use phase posts only; table uses all posts
   const sortedPosts = [...stats.validPosts].sort((a,b) => parseDate(a.date) - parseDate(b.date));
   const allSortedPosts = [...stats.allPosts].sort((a,b) => parseDate(b.date) - parseDate(a.date));
   const postLabels  = sortedPosts.map(p => p.date.substring(0,5));
 
   // Follower chart with expected pace
-
-  // Build timeline from 30/04 (phase start) → 01/10 (target)
-  // PHASE_START for chart = 30 Apr, not 1 Apr
   const CHART_START = new Date('2026-04-30');
   const CHART_END   = new Date('2026-10-01');
 
@@ -731,11 +776,10 @@ function renderDashboard(posts, stats) {
     { label: '01/10', date: new Date('2026-10-01') },
   ];
 
-  // Merge phase post dates into timeline
   const allTimelinePoints = [...monthPoints];
   sortedPosts.forEach(p => {
     const pd = parseDate(p.date);
-    if (pd < CHART_START) return; // skip pre-phase posts
+    if (pd < CHART_START) return;
     const label = p.date.substring(0,5);
     if (!allTimelinePoints.find(pt => pt.label === label)) {
       allTimelinePoints.push({ label, date: pd, isPost: true, followers: p.followers });
@@ -749,14 +793,12 @@ function renderDashboard(posts, stats) {
 
   const today = new Date();
 
-  // Expected pace: linear from 1,023 on 30/04 → 1,535 on 01/10
-  const CHART_DAYS = (CHART_END - CHART_START) / 86400000; // 154 days
+  const CHART_DAYS = (CHART_END - CHART_START) / 86400000;
 
   const tlLabels   = allTimelinePoints.map(pt => pt.label);
   const tlActual   = allTimelinePoints.map(pt => {
     if (pt.date > today) return null;
     if (pt.isPost) return pt.followers;
-    // carry forward last known value
     const before = [...sortedPosts]
       .filter(p => parseDate(p.date) >= CHART_START)
       .reverse()
@@ -865,9 +907,44 @@ function renderDashboard(posts, stats) {
     options: { responsive:true, plugins:{ legend:{display:true,labels:{color:'#5a6175',font:{size:11},boxWidth:14}}, tooltip:{backgroundColor:'#111318',borderColor:'#1e2330',borderWidth:1,titleColor:'#eef0f5',bodyColor:'#8892a4',padding:10} }, scales:{ x:{grid:{display:false},ticks:{font:{size:9},maxRotation:45}}, y:{grid:{color:'#1a1e28'},ticks:{font:{size:10},callback:v=>v+'%'},min:0} } }
   });
 
+  // WEEKLY CONVERSION
+  const weeks = stats.weeks || [];
+  const weekTable = document.getElementById('weekTable');
+  weekTable.innerHTML = '';
+  const thisMonday = mondayOf(new Date());
+  weeks.forEach(w => {
+    const st = weekStatus(w.rate, w.followers, w.reach);
+    const inProgress = isoKey(w.monday) === isoKey(thisMonday);
+    const label = w.monday.toLocaleDateString('en-GB', { day:'2-digit', month:'short' });
+    const rateCls = w.rate >= MIN_RATE ? 'er-high' : 'er-low';
+    weekTable.innerHTML += `<tr>
+      <td class="muted">${label}${inProgress ? ' <span style="color:var(--accent2);font-size:10px;">· in progress</span>' : ''}</td>
+      <td>${w.posts}</td>
+      <td>${w.reach.toLocaleString()}</td>
+      <td>+${w.followers}</td>
+      <td class="${rateCls}">${w.rate.toFixed(2)}</td>
+      <td><span class="badge ${st.cls}">${st.label}</span></td>
+    </tr>`;
+  });
+
+  const convLabels = weeks.map(w => w.monday.toLocaleDateString('en-GB', { day:'2-digit', month:'short' }));
+  const convRates  = weeks.map(w => w.rate);
+  if (charts.conversion) charts.conversion.destroy();
+  charts.conversion = new Chart(document.getElementById('conversionChart'), {
+    type: 'bar',
+    data: {
+      labels: convLabels,
+      datasets: [
+        { label:'Rate /1k reach', data: convRates, backgroundColor: convRates.map(v => v >= MIN_RATE ? 'rgba(61,232,158,0.7)' : 'rgba(255,77,109,0.6)'), borderColor:'transparent', borderRadius:2, order:2 },
+        { label:`Target ${MIN_RATE.toFixed(1)}`, type:'line', data: convRates.map(()=>MIN_RATE), borderColor:'rgba(245,200,66,0.7)', borderDash:[5,4], pointRadius:0, borderWidth:1.5, fill:false, order:1 }
+      ]
+    },
+    options: { responsive:true, plugins:{ legend:{display:true,labels:{color:'#8892a4',font:{size:11},boxWidth:12,padding:12}}, tooltip:{backgroundColor:'#111318',borderColor:'#1e2330',borderWidth:1,titleColor:'#eef0f5',bodyColor:'#8892a4',padding:10} }, scales:{ x:{grid:{display:false},ticks:{font:{size:10}}}, y:{grid:{color:'#1a1e28'},ticks:{font:{size:10}},title:{display:true,text:'Followers / 1,000 reach',color:'#5a6175',font:{size:10}},beginAtZero:true} } }
+  });
 
 
-  // ── RECENT POSTS (last 7 days — from allPosts so nothing is excluded)
+
+  // RECENT POSTS (last 7 days — from allPosts so nothing is excluded)
   const sevenDaysAgo = new Date(new Date() - 7 * 86400000);
   const recentSeven = stats.allPosts
     .filter(p => parseDate(p.date) >= sevenDaysAgo)
@@ -892,7 +969,6 @@ function renderDashboard(posts, stats) {
       const daysAgo  = Math.round((new Date() - parseDate(p.date)) / 86400000);
       const daysLabel = daysAgo === 0 ? 'Today' : daysAgo === 1 ? 'Yesterday' : `${daysAgo} days ago`;
 
-      // Reporting window: data available 14 days after posting
       const reportDate = new Date(parseDate(p.date).getTime() + 14*86400000);
       const daysUntilReport = Math.ceil((reportDate - new Date()) / 86400000);
       const reportLabel = daysUntilReport > 0
@@ -924,11 +1000,10 @@ function renderDashboard(posts, stats) {
     });
   }
 
-  // ── BEST POST
+  // BEST POST
   const validForBest = stats.validPosts.filter(p => p.reach > 0);
   if (validForBest.length) {
     const best = validForBest.reduce((a, b) => {
-      // Score = reach * 0.5 + er * 10 + newFollowers * 20
       const scoreA = a.reach * 0.5 + a.er * 10 + a.newFollowers * 20;
       const scoreB = b.reach * 0.5 + b.er * 10 + b.newFollowers * 20;
       return scoreB > scoreA ? b : a;
@@ -962,7 +1037,7 @@ function renderDashboard(posts, stats) {
       </div>`;
   }
 
-  // ── CONTENT MIX
+  // CONTENT MIX
   const mixColors = { Reel:'reel', Carousel:'carousel', Post:'post', Kolonne1:'post' };
   const mixGrid = document.getElementById('mix-grid');
   mixGrid.innerHTML = '';
@@ -982,7 +1057,7 @@ function renderDashboard(posts, stats) {
       </div>`;
   });
 
-  // ── PILLARS
+  // PILLARS
   const pillarColors = { Forberedelse: { border:'var(--blue)', text:'var(--blue)', icon:'🎯' }, Performance: { border:'var(--green)', text:'var(--green)', icon:'⚡' }, 'Niche MBT': { border:'var(--accent2)', text:'var(--accent2)', icon:'🚵' } };
   const pillarGrid = document.getElementById('pillar-grid');
   pillarGrid.innerHTML = '';
@@ -999,7 +1074,7 @@ function renderDashboard(posts, stats) {
       </div>`;
   });
 
-  // ── POST TABLE — all posts including pre-phase
+  // POST TABLE — all posts including pre-phase
   document.getElementById('post-count').textContent = `${stats.allPosts.length} posts tracked`;
   const tbody = document.getElementById('postTable');
   tbody.innerHTML = '';
@@ -1021,9 +1096,7 @@ function renderDashboard(posts, stats) {
   });
 }
 
-// ─────────────────────────────────────────────────────────
 // INIT
-// ─────────────────────────────────────────────────────────
 async function init() {
   try {
     const rows  = await fetchSheetData();
