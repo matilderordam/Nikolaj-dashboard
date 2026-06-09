@@ -173,7 +173,7 @@
   .fh-gap-sub.ahead { color: var(--green); }
 
   /* KPI CARDS */
-  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 32px; }
+  .kpi-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 32px; }
   .kpi-card {
     background: var(--surface); border: 1px solid var(--border);
     border-top: 3px solid var(--border); padding: 20px 22px;
@@ -231,7 +231,7 @@
   .pillar-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 32px; }
   .pillar-card { background: var(--surface); border: 1px solid var(--border); padding: 22px 24px; animation: fadeUp 0.5s both; }
   .pillar-name { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; }
-  .pillar-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .pillar-stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
   .pillar-stat-val { font-family: 'Barlow Condensed', sans-serif; font-size: 26px; font-weight: 800; line-height: 1; }
   .pillar-stat-lbl { font-size: 10px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
 
@@ -262,7 +262,7 @@
     border: 1px solid var(--border);
     border-left: 3px solid var(--accent);
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
     gap: 0;
     overflow: hidden;
     animation: fadeUp 0.4s both;
@@ -312,7 +312,7 @@
   /* BEST POST */
   .best-post {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
     gap: 0;
     background: var(--surface);
     border: 1px solid var(--border);
@@ -410,9 +410,17 @@
       <div class="kpi-value" id="kv-cadence">—</div>
       <div class="kpi-sub"><span class="badge" id="kb-cadence">—</span> <span id="ks-cadence">posts last 4 wks</span></div>
     </div>
+    <div class="kpi-card" id="kpi-conv">
+      <div class="kpi-label">Conversion Rate</div>
+      <div class="kpi-value" id="kv-conv">—</div>
+      <div class="kpi-sub"><span class="badge" id="kb-conv">—</span> <span>followers / 1k reach</span></div>
+    </div>
   </div>
 
 
+
+  <div class="section-title">AI Performance Read</div>
+  <div id="analysis-card" style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent);padding:18px 24px;margin-bottom:32px;font-size:14px;line-height:1.65;color:var(--label);"></div>
 
   <div class="section-title">Current · Last 7 Days</div>
   <div id="recent-posts-section">
@@ -452,7 +460,7 @@
       <table>
         <thead>
           <tr>
-            <th>Week (Mon)</th><th>Posts</th><th>Reach</th>
+            <th>Week (Mon)</th><th>Posts</th><th>Reach</th><th>Views</th>
             <th>New Followers</th><th>Rate /1k</th><th>Status</th>
           </tr>
         </thead>
@@ -481,7 +489,7 @@
         <thead>
           <tr>
             <th>Date</th><th>Title</th><th>Format</th><th>Pillar</th>
-            <th>Reach</th><th>ER %</th><th>Engagement</th><th>New Followers</th><th>Link</th>
+            <th>Reach</th><th>Views</th><th>ER %</th><th>Engagement</th><th>New Followers</th><th>Link</th>
           </tr>
         </thead>
         <tbody id="postTable"></tbody>
@@ -633,17 +641,21 @@ function computeStats(posts) {
   const formats = {};
   validPosts.forEach(p => {
     const f = p.format || 'Other';
-    if (!formats[f]) formats[f] = { count:0, reach:0, er:0, engagement:0 };
+    if (!formats[f]) formats[f] = { count:0, reach:0, er:0, engagement:0, views:0, followers:0 };
     formats[f].count++;
     formats[f].reach      += p.reach;
     formats[f].er         += p.er;
     formats[f].engagement += p.engagement;
+    formats[f].views      += p.views;
+    formats[f].followers  += p.newFollowers;
   });
   Object.keys(formats).forEach(f => {
     const fx = formats[f];
     fx.avgReach      = Math.round(fx.reach      / fx.count);
     fx.avgER         = +(fx.er         / fx.count).toFixed(1);
     fx.avgEngagement = Math.round(fx.engagement / fx.count);
+    fx.avgViews      = Math.round(fx.views      / fx.count);
+    fx.convRate      = fx.reach > 0 ? +(fx.followers / fx.reach * 1000).toFixed(2) : 0;
     fx.pct           = Math.round(fx.count / validPosts.length * 100);
   });
 
@@ -651,17 +663,21 @@ function computeStats(posts) {
   const pillars = {};
   validPosts.filter(p => p.pillar && p.pillar !== '—').forEach(p => {
     const pl = p.pillar;
-    if (!pillars[pl]) pillars[pl] = { count:0, reach:0, er:0, engagement:0 };
+    if (!pillars[pl]) pillars[pl] = { count:0, reach:0, er:0, engagement:0, views:0, followers:0 };
     pillars[pl].count++;
     pillars[pl].reach      += p.reach;
     pillars[pl].er         += p.er;
     pillars[pl].engagement += p.engagement;
+    pillars[pl].views      += p.views;
+    pillars[pl].followers  += p.newFollowers;
   });
   Object.keys(pillars).forEach(pl => {
     const px = pillars[pl];
     px.avgReach      = Math.round(px.reach      / px.count);
     px.avgER         = +(px.er         / px.count).toFixed(1);
     px.avgEngagement = Math.round(px.engagement / px.count);
+    px.avgViews      = Math.round(px.views      / px.count);
+    px.convRate      = px.reach > 0 ? +(px.followers / px.reach * 1000).toFixed(2) : 0;
   });
 
   // Weekly conversion — phase posts with data only (reach > 0)
@@ -670,10 +686,11 @@ function computeStats(posts) {
     const d = parseDate(p.date);
     const monday = mondayOf(d);
     const key = isoKey(monday);
-    if (!weekMap[key]) weekMap[key] = { monday, posts:0, reach:0, followers:0 };
+    if (!weekMap[key]) weekMap[key] = { monday, posts:0, reach:0, followers:0, views:0 };
     weekMap[key].posts++;
     weekMap[key].reach     += p.reach;
     weekMap[key].followers += p.newFollowers;
+    weekMap[key].views     += p.views;
   });
   const weeks = Object.keys(weekMap).sort().map(k => {
     const w = weekMap[k];
@@ -681,9 +698,17 @@ function computeStats(posts) {
     return w;
   });
 
+  // Overall conversion rate (phase posts with data)
+  const totalReach = validPosts.reduce((s,p)=>s+p.reach,0);
+  const totalNew   = validPosts.reduce((s,p)=>s+p.newFollowers,0);
+  const convRate   = totalReach > 0 ? +(totalNew / totalReach * 1000).toFixed(2) : 0;
+
+  const analysis = buildAnalysis({ latestFollowers, gap, convRate, avgReach, formats, pillars });
+
   return { latestFollowers, latestDate, expectedToday, gap, daysIn,
            recentCount: recentPosts.length, avgReach, avgER, lastAvgReach,
-           formats, pillars, validPosts, sorted, allPosts: posts, weeks };
+           formats, pillars, validPosts, sorted, allPosts: posts, weeks,
+           convRate, analysis };
 }
 
 function parseDate(str) {
@@ -705,6 +730,35 @@ function isoKey(d) {
   const day = ('0'+d.getDate()).slice(-2);
   return d.getFullYear()+'-'+m+'-'+day;
 }
+function buildAnalysis(s) {
+  const lines = [];
+  const today = new Date();
+  const phaseEnd = new Date('2026-10-01');
+  const weeksLeft = Math.max(1, Math.round((phaseEnd - today) / (7*86400000)));
+  const toTarget = Math.max(0, TARGET_FOLLOWERS - s.latestFollowers);
+  const perWeek = Math.ceil(toTarget / weeksLeft);
+  const paceWord = s.gap >= 0 ? 'ahead of' : 'behind';
+  lines.push(`Pace: ${s.latestFollowers.toLocaleString()} followers, ${Math.abs(s.gap)} ${paceWord} the expected curve. Reaching ${TARGET_FOLLOWERS.toLocaleString()} by October needs ~${perWeek} new followers/week across the next ${weeksLeft} weeks.`);
+
+  const fmtArr = Object.entries(s.formats).filter(([,fx]) => fx.count >= 2).map(([f,fx]) => ({ f, rate: fx.convRate }));
+  if (fmtArr.length) {
+    fmtArr.sort((a,b) => b.rate - a.rate);
+    const best = fmtArr[0], worst = fmtArr[fmtArr.length-1];
+    const cmp = best.f !== worst.f ? `, vs ${worst.f} at ${worst.rate}/1k` : '';
+    lines.push(`Conversion: ${best.f} converts best at ${best.rate}/1k reach${cmp}. Blended ${s.convRate}/1k. Weight the mix toward the format that turns reach into followers.`);
+  }
+
+  const plArr = Object.entries(s.pillars).filter(([,px]) => px.count >= 2).map(([p,px]) => ({ p, rate: px.convRate, reach: px.avgReach }));
+  if (plArr.length) {
+    plArr.sort((a,b) => a.rate - b.rate);
+    const drag = plArr[0];
+    lines.push(`Reach is not the bottleneck (avg ${s.avgReach.toLocaleString()}/post); conversion is. "${drag.p}" pulls reach (avg ${drag.reach.toLocaleString()}) but converts at only ${drag.rate}/1k. Trim it for race and relatable content.`);
+  } else {
+    lines.push(`Reach is not the bottleneck (avg ${s.avgReach.toLocaleString()}/post); conversion is. Shift the mix toward race and relatable content that converts.`);
+  }
+  return lines;
+}
+
 function weekStatus(rate, followers, reach) {
   const rateOk = rate >= MIN_RATE;
   const volOk  = followers >= TARGET_WEEKLY_FOLLOWERS;
@@ -751,6 +805,18 @@ function renderDashboard(posts, stats) {
   document.getElementById('kb-cadence').textContent = cadOT ? '✓ On Track' : `Goal: 8/mo`;
   document.getElementById('kb-cadence').className   = `badge ${cadOT ? 'green' : 'yellow'}`;
   document.getElementById('kpi-cadence').className  = `kpi-card ${cadOT ? 'on-track' : 'warn'}`;
+
+  document.getElementById('kv-conv').textContent = stats.convRate.toFixed(2);
+  const convOT = stats.convRate >= MIN_RATE;
+  document.getElementById('kb-conv').textContent = convOT ? '✓ ≥ 2.0' : 'Below 2.0';
+  document.getElementById('kb-conv').className   = `badge ${convOT ? 'green' : 'red'}`;
+  document.getElementById('kpi-conv').className  = `kpi-card ${convOT ? 'on-track' : 'behind'}`;
+
+  // AI PERFORMANCE READ
+  const analysisCard = document.getElementById('analysis-card');
+  analysisCard.innerHTML = (stats.analysis || []).map(line =>
+    `<div style="margin-bottom:8px;"><span style="color:var(--accent);font-weight:700;margin-right:6px;">&rsaquo;</span>${line}</div>`
+  ).join('');
 
 
 
@@ -887,7 +953,7 @@ function renderDashboard(posts, stats) {
       labels: postLabels,
       datasets: [
         { label:'Impressions', data: viewsData, backgroundColor:'rgba(77,159,255,0.3)', borderColor:'transparent', borderRadius:2 },
-        { label:'Reach', data: reachData, backgroundColor: reachData.map(v => v >= 5000 ? 'rgba(61,232,158,0.75)' : v >= 2500 ? 'rgba(61,232,158,0.45)' : 'rgba(245,200,66,0.5)'), borderColor:'transparent', borderRadius:2 }
+        { label:'Reach', data: reachData, backgroundColor:'rgba(61,232,158,0.65)', borderColor:'transparent', borderRadius:2 }
       ]
     },
     options: { responsive:true, plugins:{ legend:{display:true,labels:{color:'#8892a4',font:{size:11},boxWidth:12,padding:12}}, tooltip:{backgroundColor:'#111318',borderColor:'#1e2330',borderWidth:1,titleColor:'#eef0f5',bodyColor:'#8892a4',padding:10} }, scales:{ x:{grid:{display:false},ticks:{font:{size:9},maxRotation:45}}, y:{grid:{color:'#1a1e28'},ticks:{font:{size:10}},stacked:false} } }
@@ -921,6 +987,7 @@ function renderDashboard(posts, stats) {
       <td class="muted">${label}${inProgress ? ' <span style="color:var(--accent2);font-size:10px;">· in progress</span>' : ''}</td>
       <td>${w.posts}</td>
       <td>${w.reach.toLocaleString()}</td>
+      <td class="muted">${(w.views||0).toLocaleString()}</td>
       <td>+${w.followers}</td>
       <td class="${rateCls}">${w.rate.toFixed(2)}</td>
       <td><span class="badge ${st.cls}">${st.label}</span></td>
@@ -994,6 +1061,7 @@ function renderDashboard(posts, stats) {
             ${p.url ? `<a href="${p.url}" target="_blank" class="rp-link">↗ View on Instagram</a>` : ''}
           </div>
           ${statHTML('Reach', hasData ? p.reach.toLocaleString() : null, `vs avg ${stats.avgReach.toLocaleString()}`, 'var(--green)')}
+          ${statHTML('Views', hasData ? (p.views||0).toLocaleString() : null, 'impressions', 'var(--label)')}
           ${statHTML('Engagement Rate', hasData ? p.er.toFixed(1)+'%' : null, `vs avg ${stats.avgER}%`, 'var(--accent)')}
           ${statHTML('New Followers', hasData ? '+'+p.newFollowers : null, `${p.engagement.toLocaleString()} engagements`, 'var(--blue)')}
         </div>`;
@@ -1025,6 +1093,11 @@ function renderDashboard(posts, stats) {
           <div class="bp-stat-sub">vs avg ${stats.avgReach.toLocaleString()}</div>
         </div>
         <div class="bp-stat">
+          <div class="bp-stat-label">Views</div>
+          <div class="bp-stat-value" style="color:var(--label)">${(best.views||0).toLocaleString()}</div>
+          <div class="bp-stat-sub">impressions</div>
+        </div>
+        <div class="bp-stat">
           <div class="bp-stat-label">Engagement Rate</div>
           <div class="bp-stat-value" style="color:var(--accent)">${best.er.toFixed(1)}%</div>
           <div class="bp-stat-sub">vs avg ${stats.avgER}%</div>
@@ -1050,7 +1123,9 @@ function renderDashboard(posts, stats) {
         <div class="mix-share ${cls}">${fx.pct}%</div>
         <div class="mix-stats">
           <div class="mix-stat">Avg Reach: <span>${fx.avgReach.toLocaleString()}</span></div>
+          <div class="mix-stat">Avg Views: <span>${(fx.avgViews||0).toLocaleString()}</span></div>
           <div class="mix-stat">Avg ER: <span>${fx.avgER}%</span></div>
+          <div class="mix-stat">Conv. Rate: <span>${fx.convRate}/1k</span></div>
           <div class="mix-stat">Avg Engagement: <span>${fx.avgEngagement}</span></div>
           <div class="mix-stat">Posts: <span>${fx.count} of ${totalPosts}</span></div>
         </div>
@@ -1069,7 +1144,9 @@ function renderDashboard(posts, stats) {
         <div class="pillar-stats">
           <div><div class="pillar-stat-val">${px.count}</div><div class="pillar-stat-lbl">Posts</div></div>
           <div><div class="pillar-stat-val">${px.avgReach.toLocaleString()}</div><div class="pillar-stat-lbl">Avg Reach</div></div>
+          <div><div class="pillar-stat-val">${(px.avgViews||0).toLocaleString()}</div><div class="pillar-stat-lbl">Avg Views</div></div>
           <div><div class="pillar-stat-val" style="color:${c.text}">${px.avgER}%</div><div class="pillar-stat-lbl">Avg ER</div></div>
+          <div><div class="pillar-stat-val" style="color:${c.text}">${px.convRate}</div><div class="pillar-stat-lbl">Conv /1k</div></div>
         </div>
       </div>`;
   });
@@ -1088,6 +1165,7 @@ function renderDashboard(posts, stats) {
       <td>${fmtTag}</td>
       <td class="muted">${p.pillar}</td>
       <td>${p.reach.toLocaleString()}</td>
+      <td class="muted">${(p.views||0).toLocaleString()}</td>
       <td class="${erClass}">${p.er.toFixed(1)}%</td>
       <td>${p.engagement.toLocaleString()}</td>
       <td>${p.newFollowers > 0 ? '+'+p.newFollowers : '—'}</td>
