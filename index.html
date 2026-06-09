@@ -231,7 +231,7 @@
   .pillar-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 32px; }
   .pillar-card { background: var(--surface); border: 1px solid var(--border); padding: 22px 24px; animation: fadeUp 0.5s both; }
   .pillar-name { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; }
-  .pillar-stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+  .pillar-stats { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
   .pillar-stat-val { font-family: 'Barlow Condensed', sans-serif; font-size: 26px; font-weight: 800; line-height: 1; }
   .pillar-stat-lbl { font-size: 10px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
 
@@ -489,7 +489,7 @@
         <thead>
           <tr>
             <th>Date</th><th>Title</th><th>Format</th><th>Pillar</th>
-            <th>Reach</th><th>Views</th><th>ER %</th><th>Engagement</th><th>New Followers</th><th>Link</th>
+            <th>Reach</th><th>Views</th><th>Saves/1k</th><th>ER %</th><th>Engagement</th><th>New Followers</th><th>Link</th>
           </tr>
         </thead>
         <tbody id="postTable"></tbody>
@@ -600,6 +600,7 @@ function parseRows(rows) {
       views:        gn(14),
       er:           erVal,
       engagement:   totalEng,
+      saves:        gn(12),
       newFollowers: gn(16),
       avgReach:     gn(20),
     });
@@ -655,6 +656,7 @@ function computeStats(posts) {
     fx.avgER         = +(fx.er         / fx.count).toFixed(1);
     fx.avgEngagement = Math.round(fx.engagement / fx.count);
     fx.avgViews      = Math.round(fx.views      / fx.count);
+    fx.avgFollowers  = +(fx.followers / fx.count).toFixed(1);
     fx.convRate      = fx.reach > 0 ? +(fx.followers / fx.reach * 1000).toFixed(2) : 0;
     fx.pct           = Math.round(fx.count / validPosts.length * 100);
   });
@@ -677,6 +679,7 @@ function computeStats(posts) {
     px.avgER         = +(px.er         / px.count).toFixed(1);
     px.avgEngagement = Math.round(px.engagement / px.count);
     px.avgViews      = Math.round(px.views      / px.count);
+    px.avgFollowers  = +(px.followers / px.count).toFixed(1);
     px.convRate      = px.reach > 0 ? +(px.followers / px.reach * 1000).toFixed(2) : 0;
   });
 
@@ -734,40 +737,43 @@ function buildAnalysis(s) {
   const lines = [];
   const today = new Date();
   const phaseEnd = new Date('2026-10-01');
-  const weeksLeft = Math.max(1, Math.round((phaseEnd - today) / (7*86400000)));
+  const weeksLeft = Math.max(1, Math.round((phaseEnd - today) / (7 * 86400000)));
   const toTarget = Math.max(0, TARGET_FOLLOWERS - s.latestFollowers);
   const perWeek = Math.ceil(toTarget / weeksLeft);
   const paceWord = s.gap >= 0 ? 'ahead of' : 'behind';
-  lines.push(`Pace: ${s.latestFollowers.toLocaleString()} followers, ${Math.abs(s.gap)} ${paceWord} the expected curve. Reaching ${TARGET_FOLLOWERS.toLocaleString()} by October needs ~${perWeek} new followers/week across the next ${weeksLeft} weeks.`);
 
-  const fmtArr = Object.entries(s.formats).filter(([,fx]) => fx.count >= 2).map(([f,fx]) => ({ f, rate: fx.convRate }));
-  if (fmtArr.length) {
-    fmtArr.sort((a,b) => b.rate - a.rate);
-    const best = fmtArr[0], worst = fmtArr[fmtArr.length-1];
-    const cmp = best.f !== worst.f ? `, vs ${worst.f} at ${worst.rate}/1k` : '';
-    lines.push(`Conversion: ${best.f} converts best at ${best.rate}/1k reach${cmp}. Blended ${s.convRate}/1k. Weight the mix toward the format that turns reach into followers.`);
+  lines.push(`Pace: ${s.latestFollowers.toLocaleString()} followers, ${Math.abs(s.gap)} ${paceWord} the expected curve. Reaching ${TARGET_FOLLOWERS.toLocaleString()} by October needs about ${perWeek} new followers per week for ${weeksLeft} more weeks.`);
+
+  // Rank by new followers PER POST (the goal), not by rate.
+  const rank = (obj) => Object.entries(obj)
+    .filter(([, x]) => x.count >= 2)
+    .map(([k, x]) => ({ k, perPost: +(x.followers / x.count).toFixed(1), reach: x.avgReach, rate: x.convRate }))
+    .sort((a, b) => b.perPost - a.perPost);
+
+  const fmt = rank(s.formats);
+  if (fmt.length) {
+    const top = fmt[0];
+    lines.push(`Most followers per post comes from ${top.k}: about ${top.perPost} per post on ${top.reach.toLocaleString()} avg reach (${top.rate} per 1k). Total followers per post is the goal, and reach is what scales it, so a high-reach post wins even at a lower rate.`);
   }
 
-  const plArr = Object.entries(s.pillars).filter(([,px]) => px.count >= 2).map(([p,px]) => ({ p, rate: px.convRate, reach: px.avgReach }));
-  if (plArr.length) {
-    plArr.sort((a,b) => a.rate - b.rate);
-    const drag = plArr[0];
-    lines.push(`Reach is not the bottleneck (avg ${s.avgReach.toLocaleString()}/post); conversion is. "${drag.p}" pulls reach (avg ${drag.reach.toLocaleString()}) but converts at only ${drag.rate}/1k. Trim it for race and relatable content.`);
+  const pil = rank(s.pillars);
+  if (pil.length >= 2) {
+    const best = pil[0], low = pil[pil.length - 1];
+    lines.push(`Action: do more of "${best.k}" (about ${best.perPost} followers per post). "${low.k}" returns about ${low.perPost} per post, so keep it when reach is high. Reach still adds conversions even when the rate is lower.`);
   } else {
-    lines.push(`Reach is not the bottleneck (avg ${s.avgReach.toLocaleString()}/post); conversion is. Shift the mix toward race and relatable content that converts.`);
+    lines.push(`Action: prioritise high-reach race and relatable content. Maximise total conversions per post, not the rate. A big-reach post at a moderate rate beats a small post at a high one.`);
   }
   return lines;
 }
 
 function weekStatus(rate, followers, reach) {
-  const rateOk = rate >= MIN_RATE;
-  const volOk  = followers >= TARGET_WEEKLY_FOLLOWERS;
-  // Reach that should have been enough to hit the weekly target at MIN_RATE
+  const volOk = followers >= TARGET_WEEKLY_FOLLOWERS;
+  // Reach that, at par rate, would already cover the weekly target
   const reachEnough = reach >= (TARGET_WEEKLY_FOLLOWERS / MIN_RATE * 1000);
-  if (rateOk && volOk)        return { label:'On track', cls:'green' };
-  if (rateOk && !volOk)       return { label:'Good targeting, low reach', cls:'yellow' };
-  if (!rateOk && reachEnough) return { label:'Reach wasted', cls:'red' };
-  return { label:'Weak week', cls:'red' };
+  if (volOk)        return { label:'On track', cls:'green' };                 // hit the absolute target
+  if (reachEnough)  return { label:'High reach, room to convert', cls:'yellow' }; // had the eyes, convert more
+  if (rate >= MIN_RATE) return { label:'Converts well, low reach', cls:'yellow' }; // efficient, needs more reach
+  return { label:'Low reach + low conversion', cls:'red' };
 }
 
 // RENDER
@@ -812,7 +818,7 @@ function renderDashboard(posts, stats) {
   document.getElementById('kb-conv').className   = `badge ${convOT ? 'green' : 'red'}`;
   document.getElementById('kpi-conv').className  = `kpi-card ${convOT ? 'on-track' : 'behind'}`;
 
-  // AI PERFORMANCE READ
+  // PERFORMANCE READ (computed from the data on every load)
   const analysisCard = document.getElementById('analysis-card');
   analysisCard.innerHTML = (stats.analysis || []).map(line =>
     `<div style="margin-bottom:8px;"><span style="color:var(--accent);font-weight:700;margin-right:6px;">&rsaquo;</span>${line}</div>`
@@ -1122,6 +1128,7 @@ function renderDashboard(posts, stats) {
         <div class="mix-type">${fmt}</div>
         <div class="mix-share ${cls}">${fx.pct}%</div>
         <div class="mix-stats">
+          <div class="mix-stat">New Followers/post: <span>${fx.avgFollowers}</span></div>
           <div class="mix-stat">Avg Reach: <span>${fx.avgReach.toLocaleString()}</span></div>
           <div class="mix-stat">Avg Views: <span>${(fx.avgViews||0).toLocaleString()}</span></div>
           <div class="mix-stat">Avg ER: <span>${fx.avgER}%</span></div>
@@ -1143,10 +1150,11 @@ function renderDashboard(posts, stats) {
         <div class="pillar-name" style="color:${c.text}">${c.icon} ${pl}</div>
         <div class="pillar-stats">
           <div><div class="pillar-stat-val">${px.count}</div><div class="pillar-stat-lbl">Posts</div></div>
+          <div><div class="pillar-stat-val" style="color:${c.text}">${px.avgFollowers}</div><div class="pillar-stat-lbl">Foll./post</div></div>
           <div><div class="pillar-stat-val">${px.avgReach.toLocaleString()}</div><div class="pillar-stat-lbl">Avg Reach</div></div>
           <div><div class="pillar-stat-val">${(px.avgViews||0).toLocaleString()}</div><div class="pillar-stat-lbl">Avg Views</div></div>
           <div><div class="pillar-stat-val" style="color:${c.text}">${px.avgER}%</div><div class="pillar-stat-lbl">Avg ER</div></div>
-          <div><div class="pillar-stat-val" style="color:${c.text}">${px.convRate}</div><div class="pillar-stat-lbl">Conv /1k</div></div>
+          <div><div class="pillar-stat-val">${px.convRate}</div><div class="pillar-stat-lbl">Conv /1k</div></div>
         </div>
       </div>`;
   });
@@ -1157,6 +1165,8 @@ function renderDashboard(posts, stats) {
   tbody.innerHTML = '';
   allSortedPosts.forEach(p => {
     const erClass = p.er >= 30 ? 'er-high' : p.er >= 15 ? 'er-mid' : 'er-low';
+    const savesPer1k = p.reach > 0 ? (p.saves || 0) / p.reach * 1000 : 0;
+    const savesClass = savesPer1k >= 1.0 ? 'er-high' : 'er-low';
     const fmt = (p.format || 'Post').toLowerCase();
     const fmtTag = `<span class="format-tag ${fmt}">${p.format || 'Post'}</span>`;
     tbody.innerHTML += `<tr>
@@ -1166,6 +1176,7 @@ function renderDashboard(posts, stats) {
       <td class="muted">${p.pillar}</td>
       <td>${p.reach.toLocaleString()}</td>
       <td class="muted">${(p.views||0).toLocaleString()}</td>
+      <td class="${savesClass}">${savesPer1k.toFixed(2)}</td>
       <td class="${erClass}">${p.er.toFixed(1)}%</td>
       <td>${p.engagement.toLocaleString()}</td>
       <td>${p.newFollowers > 0 ? '+'+p.newFollowers : '—'}</td>
