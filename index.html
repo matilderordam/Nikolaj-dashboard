@@ -309,7 +309,7 @@
     </div>
   </div>
 
-  <div class="section-title">AI Performance Read</div>
+  <div class="section-title">Performance Read</div>
   <div id="analysis-card" style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent);padding:18px 24px;margin-bottom:32px;font-size:14px;line-height:1.65;color:var(--label);"></div>
 
   <div class="section-title">Current · Last 7 Days</div>
@@ -644,7 +644,7 @@ function computeStats(posts) {
   const totalNew   = validPosts.reduce((s,p)=>s+p.newFollowers,0);
   const convRate   = totalReach > 0 ? +(totalNew / totalReach * 1000).toFixed(2) : 0;
 
-  const analysis = buildAnalysis({ latestFollowers, gap, convRate, avgReach, formats, pillars });
+  const analysis = buildAnalysis({ latestFollowers, gap, convRate, avgReach, formats, pillars, validPosts });
 
   return { latestFollowers, latestDate, expectedToday, gap, daysIn,
            recentCount: recentPosts.length, avgReach, avgER, lastAvgReach,
@@ -678,26 +678,74 @@ function buildAnalysis(s) {
   const perWeek   = Math.ceil(toTarget / weeksLeft);
   const paceWord  = s.gap >= 0 ? 'ahead of' : 'behind';
 
-  lines.push(`Pace: ${s.latestFollowers.toLocaleString()} followers, ${Math.abs(s.gap)} ${paceWord} the expected curve. Reaching ${TARGET_FOLLOWERS.toLocaleString()} by October needs about ${perWeek} new followers per week for ${weeksLeft} more weeks.`);
-
-  const rank = (obj) => Object.entries(obj)
+  // --- BULLET 1: Pace + what content is actually producing followers ---
+  const pillarRanked = Object.entries(s.pillars)
     .filter(([, x]) => x.count >= 2)
-    .map(([k, x]) => ({ k, perPost: +(x.followers / x.count).toFixed(1), reach: x.avgReach, rate: x.convRate }))
+    .map(([k, x]) => ({ k, perPost: +(x.followers / x.count).toFixed(1), avgReach: x.avgReach }))
     .sort((a, b) => b.perPost - a.perPost);
 
-  const fmt = rank(s.formats);
-  if (fmt.length) {
-    const top = fmt[0];
-    lines.push(`Most followers per post comes from ${top.k}: about ${top.perPost} per post on ${top.reach.toLocaleString()} avg reach (${top.rate} per 1k). Total followers per post is the goal, and reach is what scales it.`);
+  const formatRanked = Object.entries(s.formats)
+    .filter(([, x]) => x.count >= 2)
+    .map(([k, x]) => ({ k, perPost: +(x.followers / x.count).toFixed(1), avgReach: x.avgReach }))
+    .sort((a, b) => b.perPost - a.perPost);
+
+  const topPillar = pillarRanked[0];
+  const topFormat = formatRanked[0];
+
+  let bullet1 = `Pace: ${s.latestFollowers.toLocaleString()} followers, ${Math.abs(s.gap)} ${paceWord} expected. ${perWeek} new followers/week needed over the next ${weeksLeft} weeks.`;
+  if (topFormat && topPillar) {
+    bullet1 += ` ${topFormat.k}s in the "${topPillar.k}" pillar are producing the most — ${topPillar.perPost} followers per post on avg ${topPillar.avgReach.toLocaleString()} reach. That is where to focus posting effort.`;
+  }
+  lines.push(bullet1);
+
+  // --- BULLET 2: Skip rate signal ---
+  const reelsWithSkip = s.validPosts.filter(p => p.format.toLowerCase() === 'reel' && p.skipRate !== null);
+  if (reelsWithSkip.length >= 4) {
+    const avgSkip = reelsWithSkip.reduce((acc, p) => acc + p.skipRate, 0) / reelsWithSkip.length;
+    const lowSkip  = reelsWithSkip.filter(p => p.skipRate < avgSkip);
+    const highSkip = reelsWithSkip.filter(p => p.skipRate >= avgSkip);
+    const avgFollLow  = lowSkip.length  ? +(lowSkip.reduce((a,p)=>a+p.newFollowers,0)  / lowSkip.length).toFixed(1)  : 0;
+    const avgFollHigh = highSkip.length ? +(highSkip.reduce((a,p)=>a+p.newFollowers,0) / highSkip.length).toFixed(1) : 0;
+    const avgReachLow  = lowSkip.length  ? Math.round(lowSkip.reduce((a,p)=>a+p.reach,0)  / lowSkip.length)  : 0;
+    const avgReachHigh = highSkip.length ? Math.round(highSkip.reduce((a,p)=>a+p.reach,0) / highSkip.length) : 0;
+
+    const skipSignalClear = Math.abs(avgFollLow - avgFollHigh) >= 2;
+    if (skipSignalClear) {
+      const betterSide  = avgFollLow > avgFollHigh ? 'below' : 'above';
+      const betterFoll  = avgFollLow > avgFollHigh ? avgFollLow  : avgFollHigh;
+      const betterReach = avgFollLow > avgFollHigh ? avgReachLow : avgReachHigh;
+      const worseFoll   = avgFollLow > avgFollHigh ? avgFollHigh : avgFollLow;
+      lines.push(`Skip rate: reels ${betterSide} the ${avgSkip.toFixed(0)}% average return ${betterFoll} new followers on ${betterReach.toLocaleString()} avg reach, vs ${worseFoll} for those above. Lower skip rate correlates with more followers — hooks that keep people watching past the first 2 seconds are driving the difference.`);
+    } else {
+      lines.push(`Skip rate (avg ${avgSkip.toFixed(1)}%): no strong split between low- and high-skip reels on follower conversion yet — raw reach is the bigger driver at this stage. Keep testing hooks, but don't sacrifice reach potential for retention alone.`);
+    }
   }
 
-  const pil = rank(s.pillars);
-  if (pil.length >= 2) {
-    const best = pil[0], low = pil[pil.length - 1];
-    lines.push(`Action: do more of "${best.k}" (about ${best.perPost} followers per post). "${low.k}" returns about ${low.perPost} per post. Reach still adds conversions even when the rate is lower.`);
-  } else {
-    lines.push(`Action: prioritise high-reach race and relatable content. Maximise total conversions per post, not the rate.`);
+  // --- BULLET 3: Saves vs sends as conversion signals ---
+  const validReels = s.validPosts.filter(p => p.format.toLowerCase() === 'reel' && p.reach > 0);
+  if (validReels.length >= 3) {
+    const avgFoll    = validReels.reduce((a,p) => a + p.newFollowers, 0) / validReels.length;
+    const avgSends1k = validReels.reduce((a,p) => a + p.sends/p.reach*1000, 0) / validReels.length;
+
+    const highSendsLowConv = validReels.filter(p => (p.sends/p.reach*1000) > avgSends1k * 1.5 && p.newFollowers < avgFoll);
+    const highSavesFoll    = s.validPosts.filter(p => p.reach > 0 && (p.saves/p.reach*1000) >= 1.5 && p.newFollowers >= avgFoll);
+
+    let bullet3 = '';
+    if (highSavesFoll.length >= 2) {
+      const saveFollNames = highSavesFoll.slice(0,2).map(p => `"${p.title}"`).join(' and ');
+      bullet3 = `Saves predict followers better than sends. ${saveFollNames} had saves/1k above 1.5 and above-average follower return.`;
+    } else {
+      bullet3 = `Saves/1k above 1.5 is the threshold that consistently produces follower gains.`;
+    }
+    if (highSendsLowConv.length >= 1) {
+      const sendGapNames = highSendsLowConv.slice(0,1).map(p => `"${p.title}"`).join('');
+      bullet3 += ` ${sendGapNames} had high sends but low conversion — shared content reaches new eyes but those viewers don't follow at the same rate. Don't read high sends as a growth signal on its own.`;
+    } else {
+      bullet3 += ` Sends drive reach but are not a reliable conversion signal on their own — a post can go wide without gaining followers if there is no reason to follow after watching.`;
+    }
+    lines.push(bullet3);
   }
+
   return lines;
 }
 
