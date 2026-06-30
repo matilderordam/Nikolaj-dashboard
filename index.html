@@ -113,17 +113,24 @@
   .chart-card.wide { grid-column: 1 / -1; }
   .chart-title { font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--label); margin-bottom: 20px; }
 
-  /* SIGNAL COMPARISON SECTION */
-  .signal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 32px; }
-  .signal-card { background: var(--surface); border: 1px solid var(--border); padding: 24px; animation: fadeUp 0.5s both; }
-  .signal-card.wide { grid-column: 1 / -1; }
-  .signal-note { font-size: 12px; color: var(--muted); margin-top: 12px; line-height: 1.6; }
-  .signal-note strong { color: var(--label); }
+  /* QUARTILE CARDS */
+  .quartile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--border); }
+  .quartile-half { padding: 24px 28px; }
+  .quartile-half.top { border-right: 1px solid var(--border); }
+  .quartile-label { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 16px; }
+  .quartile-label.top { color: var(--green); }
+  .quartile-label.bottom { color: var(--red); }
+  .quartile-stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 16px; }
+  .qs-block .qs-val { font-family: 'Barlow Condensed', sans-serif; font-size: 28px; font-weight: 900; line-height: 1; }
+  .qs-block .qs-lbl { font-size: 10px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 3px; }
+  .quartile-posts { font-size: 11px; color: var(--muted); line-height: 1.7; border-top: 1px solid var(--border); padding-top: 12px; }
+  .quartile-posts strong { color: var(--label); }
 
-  /* SCATTER POINT KEY */
-  .scatter-key { display: flex; gap: 20px; margin-bottom: 16px; flex-wrap: wrap; }
-  .sk-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--label); }
-  .sk-dot { width: 10px; height: 10px; border-radius: 50%; }
+  /* SORTABLE TABLE */
+  thead th[data-col] { user-select: none; }
+  thead th[data-col]:hover { color: var(--accent); }
+  thead th.sort-asc::after { content: ' ▲'; color: var(--accent); font-size: 9px; }
+  thead th.sort-desc::after { content: ' ▼'; color: var(--accent); font-size: 9px; }
 
   /* CONTENT MIX */
   .mix-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 32px; }
@@ -275,39 +282,7 @@
     </div>
   </div>
 
-  <div class="section-title">General Overview · Reels Only</div>
-  <div class="overview-row" id="overview-row">
-    <div class="ov-block">
-      <div class="ov-label">Avg Skip Rate</div>
-      <div class="ov-value" id="ov-skip">—</div>
-      <div class="ov-sub">% of viewers who skip</div>
-    </div>
-    <div class="ov-block">
-      <div class="ov-label">Avg Saves / 1k</div>
-      <div class="ov-value" id="ov-saves">—</div>
-      <div class="ov-sub">save rate per 1k reach</div>
-    </div>
-    <div class="ov-block">
-      <div class="ov-label">Avg Sends / 1k</div>
-      <div class="ov-value" id="ov-sends">—</div>
-      <div class="ov-sub">send rate per 1k reach</div>
-    </div>
-    <div class="ov-block">
-      <div class="ov-label">Avg Comments / 1k</div>
-      <div class="ov-value" id="ov-comments">—</div>
-      <div class="ov-sub">comment rate per 1k reach</div>
-    </div>
-    <div class="ov-block">
-      <div class="ov-label">Avg Reach</div>
-      <div class="ov-value" id="ov-reach-reels">—</div>
-      <div class="ov-sub">reels only</div>
-    </div>
-    <div class="ov-block">
-      <div class="ov-label">Avg New Followers</div>
-      <div class="ov-value" id="ov-newfoll-reels">—</div>
-      <div class="ov-sub">per reel</div>
-    </div>
-  </div>
+
 
   <div class="section-title">Performance Read</div>
   <div id="analysis-card" style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent);padding:18px 24px;margin-bottom:32px;font-size:14px;line-height:1.65;color:var(--label);"></div>
@@ -354,40 +329,8 @@
     </div>
   </div>
 
-  <!-- SIGNAL COMPARISON SECTION -->
-  <div class="section-title">Signal Analysis · What Drives Reach &amp; New Followers</div>
-  <div class="signal-grid">
-    <div class="signal-card wide">
-      <div class="chart-title">Skip Rate vs. Reach · Reels Only</div>
-      <div class="scatter-key">
-        <div class="sk-item"><div class="sk-dot" style="background:var(--green)"></div>High new followers (≥5)</div>
-        <div class="sk-item"><div class="sk-dot" style="background:var(--accent)"></div>Mid new followers (2–4)</div>
-        <div class="sk-item"><div class="sk-dot" style="background:var(--red)"></div>Low new followers (0–1)</div>
-      </div>
-      <canvas id="skipReachChart" height="80"></canvas>
-      <div class="signal-note">Each point is a reel. X = skip rate %, Y = reach. Lower skip rate means more viewers watched — but reach is also driven by initial distribution. A low-skip, high-reach post is the ideal combination.</div>
-    </div>
-    <div class="signal-card">
-      <div class="chart-title">Saves/1k vs. New Followers · All Posts</div>
-      <canvas id="savesFollowersChart" height="160"></canvas>
-      <div class="signal-note"><strong>Saves per 1k reach</strong> is the strongest predictor of follower conversion in the current dataset. High saves signal content worth keeping — and the algorithm rewards that with more distribution.</div>
-    </div>
-    <div class="signal-card">
-      <div class="chart-title">Sends/1k vs. New Followers · All Posts</div>
-      <canvas id="sendsFollowersChart" height="160"></canvas>
-      <div class="signal-note"><strong>Sends</strong> drive distribution to new audiences — they push reach up but don't directly convert viewers to followers. High sends with low followers = viral potential not being captured.</div>
-    </div>
-    <div class="signal-card">
-      <div class="chart-title">Comments/1k vs. New Followers · All Posts</div>
-      <canvas id="commentsFollowersChart" height="160"></canvas>
-      <div class="signal-note"><strong>Comments</strong> are a weak follower conversion signal. They signal existing community engagement more than new audience attraction. Don't optimise for comments at the expense of reach.</div>
-    </div>
-    <div class="signal-card wide">
-      <div class="chart-title">Skip Rate, Saves, Sends, Comments · Per Post Over Time · Reels Only</div>
-      <canvas id="signalTimelineChart" height="80"></canvas>
-      <div class="signal-note">Indexed to 0–100 scale for comparison. Skip rate is inverted so that higher = better (lower actual skip rate). <strong>Watch for posts where saves and sends are both high</strong> — those tend to produce the most new followers.</div>
-    </div>
-  </div>
+  <div class="section-title">What's Working · Top vs. Bottom Converters</div>
+  <div id="quartile-section" style="margin-bottom:32px;"></div>
 
   <div class="section-title">Best Performing Post</div>
   <div id="best-post-card"></div>
@@ -398,18 +341,28 @@
   <div class="section-title">Content Pillars</div>
   <div class="pillar-grid" id="pillar-grid"></div>
 
-  <div class="section-title">Post Log</div>
+  <div class="section-title">Post Log · Click any column to sort</div>
   <div class="table-card">
     <div class="table-header">
       <div style="font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">All Posts</div>
       <div style="font-size:12px;color:var(--muted);" id="post-count">—</div>
     </div>
     <div style="overflow-x:auto;">
-      <table>
+      <table id="postTable-wrap">
         <thead>
-          <tr>
-            <th>Date</th><th>Title</th><th>Format</th><th>Pillar</th>
-            <th>Reach</th><th>Views</th><th>Skip Rate</th><th>Saves/1k</th><th>Sends/1k</th><th>ER %</th><th>New Followers</th><th>Link</th>
+          <tr id="postTableHead">
+            <th data-col="date" style="cursor:pointer;">Date</th>
+            <th>Title</th>
+            <th data-col="format" style="cursor:pointer;">Format</th>
+            <th data-col="pillar" style="cursor:pointer;">Pillar</th>
+            <th data-col="reach" style="cursor:pointer;">Reach ↕</th>
+            <th data-col="views" style="cursor:pointer;">Views ↕</th>
+            <th data-col="skipRate" style="cursor:pointer;">Skip Rate ↕</th>
+            <th data-col="saves1k" style="cursor:pointer;">Saves/1k ↕</th>
+            <th data-col="sends1k" style="cursor:pointer;">Sends/1k ↕</th>
+            <th data-col="er" style="cursor:pointer;">ER % ↕</th>
+            <th data-col="newFollowers" style="cursor:pointer;">New Followers ↕</th>
+            <th>Link</th>
           </tr>
         </thead>
         <tbody id="postTable"></tbody>
@@ -581,8 +534,9 @@ function computeStats(posts) {
   const formats = {};
   validPosts.forEach(p => {
     const f = p.format || 'Other';
-    if (!formats[f]) formats[f] = { count:0, reach:0, er:0, engagement:0, views:0, followers:0 };
+    if (!formats[f]) formats[f] = { count:0, reach:0, er:0, engagement:0, views:0, followers:0, skipSum:0, skipCount:0 };
     formats[f].count++;
+    if (p.skipRate !== null) { formats[f].skipSum += p.skipRate; formats[f].skipCount++; }
     formats[f].reach      += p.reach;
     formats[f].er         += p.er;
     formats[f].engagement += p.engagement;
@@ -597,15 +551,16 @@ function computeStats(posts) {
     fx.avgViews      = Math.round(fx.views / fx.count);
     fx.avgFollowers  = +(fx.followers / fx.count).toFixed(1);
     fx.convRate      = fx.reach > 0 ? +(fx.followers / fx.reach * 1000).toFixed(2) : 0;
-    fx.pct           = Math.round(fx.count / validPosts.length * 100);
+    fx.avgSkipRate   = fx.skipCount > 0 ? +(fx.skipSum / fx.skipCount).toFixed(1) : null;
   });
 
   // Pillars
   const pillars = {};
   validPosts.filter(p => p.pillar && p.pillar !== '—').forEach(p => {
     const pl = p.pillar;
-    if (!pillars[pl]) pillars[pl] = { count:0, reach:0, er:0, engagement:0, views:0, followers:0 };
+    if (!pillars[pl]) pillars[pl] = { count:0, reach:0, er:0, engagement:0, views:0, followers:0, skipSum:0, skipCount:0 };
     pillars[pl].count++;
+    if (p.skipRate !== null) { pillars[pl].skipSum += p.skipRate; pillars[pl].skipCount++; }
     pillars[pl].reach      += p.reach;
     pillars[pl].er         += p.er;
     pillars[pl].engagement += p.engagement;
@@ -620,6 +575,7 @@ function computeStats(posts) {
     px.avgViews      = Math.round(px.views / px.count);
     px.avgFollowers  = +(px.followers / px.count).toFixed(1);
     px.convRate      = px.reach > 0 ? +(px.followers / px.reach * 1000).toFixed(2) : 0;
+    px.avgSkipRate   = px.skipCount > 0 ? +(px.skipSum / px.skipCount).toFixed(1) : null;
   });
 
   // Weekly
@@ -935,119 +891,95 @@ function renderDashboard(posts, stats) {
     options:{ responsive:true, plugins:{ legend:{display:true,labels:{color:'#8892a4',font:{size:11},boxWidth:12,padding:12}}, tooltip:{backgroundColor:'#111318',borderColor:'#1e2330',borderWidth:1,titleColor:'#eef0f5',bodyColor:'#8892a4',padding:10} }, scales:{ x:{grid:{display:false},ticks:{font:{size:10}}}, y:{grid:{color:'#1a1e28'},ticks:{font:{size:10}},title:{display:true,text:'Followers / 1,000 reach',color:'#5a6175',font:{size:10}},beginAtZero:true} } }
   });
 
-  // ---- SIGNAL ANALYSIS CHARTS ----
+  // ---- QUARTILE SPLIT: TOP 25% vs BOTTOM 25% by new followers ----
+  (function renderQuartile() {
+    const postsWithData = stats.validPosts.filter(p => p.reach > 0);
+    if (postsWithData.length < 4) return;
 
-  // 1. SKIP RATE vs REACH (scatter, reels only)
-  const reelsForScatter = stats.reelsWithSkip;
-  const skipReachData   = reelsForScatter.map(p => ({
-    x: p.skipRate,
-    y: p.reach,
-    label: p.title,
-    newFollowers: p.newFollowers,
-  }));
+    const sorted = [...postsWithData].sort((a,b) => b.newFollowers - a.newFollowers);
+    const cutoff = Math.max(1, Math.floor(sorted.length * 0.25));
+    const top    = sorted.slice(0, cutoff);
+    const bottom = sorted.slice(sorted.length - cutoff);
 
-  if (charts.skipReach) charts.skipReach.destroy();
-  charts.skipReach = new Chart(document.getElementById('skipReachChart'), {
-    type:'scatter',
-    data:{ datasets:[{ label:'Reels', data: skipReachData,
-      backgroundColor: skipReachData.map(d => dotColor(d.newFollowers)),
-      pointRadius: 7, pointHoverRadius: 10 }]},
-    options:{
-      responsive:true,
-      plugins:{
-        legend:{display:false},
-        tooltip:{ backgroundColor:'#111318', borderColor:'#1e2330', borderWidth:1, titleColor:'#eef0f5', bodyColor:'#8892a4', padding:10,
-          callbacks:{ label: ctx => {
-            const d = ctx.raw;
-            return [`${d.label}`, `Skip: ${d.x.toFixed(1)}%`, `Reach: ${d.y.toLocaleString()}`, `New followers: +${d.newFollowers}`];
-          }}
-        }
-      },
-      scales:{
-        x:{ grid:{color:'#1a1e28'}, title:{display:true,text:'Skip Rate %',color:'#5a6175',font:{size:10}}, ticks:{font:{size:10},callback:v=>v+'%'} },
-        y:{ grid:{color:'#1a1e28'}, title:{display:true,text:'Reach',color:'#5a6175',font:{size:10}}, ticks:{font:{size:10}} }
-      }
-    }
-  });
+    const avg = (arr, fn) => arr.length ? +(arr.reduce((s,p) => s + fn(p), 0) / arr.length).toFixed(2) : 0;
+    const avgInt = (arr, fn) => arr.length ? Math.round(arr.reduce((s,p) => s + fn(p), 0) / arr.length) : 0;
 
-  // Helper: scatter for signal vs new followers
-  function makeSignalScatter(canvasId, chartKey, signalFn, xLabel) {
-    const data = stats.validPosts.map(p => ({
-      x: p.reach > 0 ? +signalFn(p).toFixed(2) : 0,
-      y: p.newFollowers,
-      label: p.title,
-      reach: p.reach,
-      format: p.format,
-    }));
-    if (charts[chartKey]) charts[chartKey].destroy();
-    charts[chartKey] = new Chart(document.getElementById(canvasId), {
-      type:'scatter',
-      data:{ datasets:[{ label:'Posts', data,
-        backgroundColor: data.map(d => {
-          const f = (d.format||'').toLowerCase();
-          return f==='reel'?'rgba(61,232,158,0.8)': f==='carousel'?'rgba(77,159,255,0.8)':'rgba(232,131,74,0.8)';
-        }),
-        pointRadius:6, pointHoverRadius:9 }]},
-      options:{
-        responsive:true,
-        plugins:{
-          legend:{display:false},
-          tooltip:{ backgroundColor:'#111318', borderColor:'#1e2330', borderWidth:1, titleColor:'#eef0f5', bodyColor:'#8892a4', padding:10,
-            callbacks:{ label: ctx => {
-              const d = ctx.raw;
-              return [`${d.label}`, `${xLabel}: ${d.x}`, `Reach: ${d.reach.toLocaleString()}`, `New followers: +${d.y}`];
-            }}
-          }
-        },
-        scales:{
-          x:{ grid:{color:'#1a1e28'}, title:{display:true,text:xLabel,color:'#5a6175',font:{size:10}}, ticks:{font:{size:10}} },
-          y:{ grid:{color:'#1a1e28'}, title:{display:true,text:'New Followers',color:'#5a6175',font:{size:10}}, ticks:{font:{size:10}}, beginAtZero:true }
-        }
-      }
+    const stat = (arr) => ({
+      foll:     +(arr.reduce((s,p)=>s+p.newFollowers,0) / arr.length).toFixed(1),
+      reach:    avgInt(arr, p => p.reach),
+      saves1k:  avg(arr, p => p.reach > 0 ? p.saves/p.reach*1000 : 0),
+      sends1k:  avg(arr, p => p.reach > 0 ? p.sends/p.reach*1000 : 0),
+      skipRate: (() => { const r = arr.filter(p=>p.skipRate!==null); return r.length ? +(r.reduce((s,p)=>s+p.skipRate,0)/r.length).toFixed(1) : null; })(),
     });
-  }
 
-  makeSignalScatter('savesFollowersChart',    'savesFoll',    p => p.reach>0 ? p.saves/p.reach*1000 : 0,    'Saves / 1k Reach');
-  makeSignalScatter('sendsFollowersChart',    'sendsFoll',    p => p.reach>0 ? p.sends/p.reach*1000 : 0,    'Sends / 1k Reach');
-  makeSignalScatter('commentsFollowersChart', 'commentsFoll', p => p.reach>0 ? p.comments/p.reach*1000 : 0, 'Comments / 1k Reach');
+    const t = stat(top);
+    const b = stat(bottom);
 
-  // 2. Signal timeline — reels only, normalised
-  const reelsSorted = [...stats.reelPosts].filter(p=>p.skipRate!==null).sort((a,b)=>parseDate(a.date)-parseDate(b.date));
-  const rLabels = reelsSorted.map(p => p.title.length>20 ? p.title.substring(0,20)+'…' : p.title);
+    const fmtSkip = v => v !== null ? v.toFixed(1)+'%' : 'N/A';
+    const topPosts    = top.map(p => p.title).join(', ');
+    const bottomPosts = bottom.map(p => p.title).join(', ');
 
-  // Normalise each signal 0–100
-  const normalise = (arr) => {
-    const mn = Math.min(...arr), mx = Math.max(...arr);
-    if (mx === mn) return arr.map(()=>50);
-    return arr.map(v => Math.round((v-mn)/(mx-mn)*100));
-  };
+    const diffColor = (tVal, bVal, lowerBetter) => {
+      if (lowerBetter) return tVal < bVal ? 'var(--green)' : 'var(--red)';
+      return tVal > bVal ? 'var(--green)' : 'var(--red)';
+    };
 
-  const skipInv  = reelsSorted.map(p => 100 - p.skipRate);         // invert: lower skip = better
-  const savesArr = reelsSorted.map(p => p.reach>0 ? p.saves/p.reach*1000 : 0);
-  const sendsArr = reelsSorted.map(p => p.reach>0 ? p.sends/p.reach*1000 : 0);
-  const commArr  = reelsSorted.map(p => p.reach>0 ? p.comments/p.reach*1000 : 0);
-
-  if (charts.signalTimeline) charts.signalTimeline.destroy();
-  charts.signalTimeline = new Chart(document.getElementById('signalTimelineChart'), {
-    type:'line',
-    data:{ labels: rLabels, datasets:[
-      { label:'Skip retention (inverted)', data: normalise(skipInv),  borderColor:'#ff4d6d', backgroundColor:'transparent', tension:0.3, pointRadius:4, borderWidth:2 },
-      { label:'Saves / 1k',               data: normalise(savesArr), borderColor:'#3de89e', backgroundColor:'transparent', tension:0.3, pointRadius:4, borderWidth:2 },
-      { label:'Sends / 1k',               data: normalise(sendsArr), borderColor:'#4d9fff', backgroundColor:'transparent', tension:0.3, pointRadius:4, borderWidth:2 },
-      { label:'Comments / 1k',            data: normalise(commArr),  borderColor:'#f5c842', backgroundColor:'transparent', tension:0.3, pointRadius:4, borderWidth:2 },
-    ]},
-    options:{
-      responsive:true,
-      plugins:{ legend:{display:true, labels:{color:'#8892a4',font:{size:11},boxWidth:14,padding:14}},
-        tooltip:{ backgroundColor:'#111318', borderColor:'#1e2330', borderWidth:1, titleColor:'#eef0f5', bodyColor:'#8892a4', padding:10,
-          callbacks:{ label: ctx => `${ctx.dataset.label}: ${ctx.raw} (indexed)` } }
-      },
-      scales:{
-        x:{ grid:{display:false}, ticks:{font:{size:9},maxRotation:30} },
-        y:{ grid:{color:'#1a1e28'}, min:0, max:100, title:{display:true,text:'Indexed 0–100',color:'#5a6175',font:{size:10}}, ticks:{font:{size:10}} }
-      }
-    }
-  });
+    document.getElementById('quartile-section').innerHTML = `
+      <div class="quartile-grid" style="background:var(--surface);border:1px solid var(--border);">
+        <div class="quartile-half top" style="background:var(--surface);">
+          <div class="quartile-label top">▲ Top ${cutoff} posts · avg ${t.foll} new followers</div>
+          <div class="quartile-stats">
+            <div class="qs-block">
+              <div class="qs-val" style="color:var(--green)">${t.reach.toLocaleString()}</div>
+              <div class="qs-lbl">Avg Reach</div>
+            </div>
+            <div class="qs-block">
+              <div class="qs-val" style="color:var(--green)">${t.saves1k}</div>
+              <div class="qs-lbl">Saves / 1k</div>
+            </div>
+            <div class="qs-block">
+              <div class="qs-val" style="color:var(--green)">${t.sends1k}</div>
+              <div class="qs-lbl">Sends / 1k</div>
+            </div>
+            <div class="qs-block">
+              <div class="qs-val" style="color:${t.skipRate !== null && b.skipRate !== null ? diffColor(t.skipRate, b.skipRate, true) : 'var(--text)'}">${fmtSkip(t.skipRate)}</div>
+              <div class="qs-lbl">Avg Skip Rate</div>
+            </div>
+            <div class="qs-block">
+              <div class="qs-val" style="color:var(--green)">${t.foll}</div>
+              <div class="qs-lbl">New Followers</div>
+            </div>
+          </div>
+          <div class="quartile-posts"><strong>Posts:</strong> ${topPosts}</div>
+        </div>
+        <div class="quartile-half bottom" style="background:var(--surface);border-left:1px solid var(--border);">
+          <div class="quartile-label bottom">▼ Bottom ${cutoff} posts · avg ${b.foll} new followers</div>
+          <div class="quartile-stats">
+            <div class="qs-block">
+              <div class="qs-val" style="color:var(--red)">${b.reach.toLocaleString()}</div>
+              <div class="qs-lbl">Avg Reach</div>
+            </div>
+            <div class="qs-block">
+              <div class="qs-val" style="color:var(--red)">${b.saves1k}</div>
+              <div class="qs-lbl">Saves / 1k</div>
+            </div>
+            <div class="qs-block">
+              <div class="qs-val" style="color:var(--red)">${b.sends1k}</div>
+              <div class="qs-lbl">Sends / 1k</div>
+            </div>
+            <div class="qs-block">
+              <div class="qs-val" style="color:${t.skipRate !== null && b.skipRate !== null ? diffColor(b.skipRate, t.skipRate, true) : 'var(--text)'}">${fmtSkip(b.skipRate)}</div>
+              <div class="qs-lbl">Avg Skip Rate</div>
+            </div>
+            <div class="qs-block">
+              <div class="qs-val" style="color:var(--red)">${b.foll}</div>
+              <div class="qs-lbl">New Followers</div>
+            </div>
+          </div>
+          <div class="quartile-posts"><strong>Posts:</strong> ${bottomPosts}</div>
+        </div>
+      </div>`;
+  })();
 
   // RECENT POSTS
   const sevenDaysAgo = new Date(new Date() - 7*86400000);
@@ -1075,7 +1007,9 @@ function renderDashboard(posts, stats) {
           ? `<div class="rp-stat-value" style="color:${color}">${value}</div><div class="rp-stat-sub">${sub}</div>`
           : `<div class="rp-stat-pending">Pending</div><div class="rp-stat-sub">${reportLabel}</div>`}
       </div>`;
-      recentGrid.innerHTML += `<div class="recent-post-card" style="border-left-color:${fmtColor}">
+      const skipColor = p.skipRate === null ? 'var(--muted)' : p.skipRate <= 45 ? 'var(--green)' : p.skipRate <= 60 ? 'var(--accent)' : 'var(--red)';
+      const skipDisplay = p.skipRate !== null ? p.skipRate.toFixed(1)+'%' : null;
+      recentGrid.innerHTML += `<div class="recent-post-card" style="border-left-color:${fmtColor};grid-template-columns:2fr 1fr 1fr 1fr 1fr${p.format.toLowerCase()==='reel'?' 1fr':''}">
         <div class="rp-main">
           <span class="rp-tag format-tag ${fmtCls}">${p.format||'Post'}</span>
           <div class="rp-title">${p.title}</div>
@@ -1087,6 +1021,7 @@ function renderDashboard(posts, stats) {
         ${statHTML('Views', hasData?(p.views||0).toLocaleString():null, 'impressions', 'var(--label)')}
         ${statHTML('Engagement Rate', hasData?p.er.toFixed(1)+'%':null, `vs avg ${stats.avgER}%`, 'var(--accent)')}
         ${statHTML('New Followers', hasData?'+'+p.newFollowers:null, `${p.engagement.toLocaleString()} engagements`, 'var(--blue)')}
+        ${p.format.toLowerCase()==='reel' ? statHTML('Skip Rate', hasData?skipDisplay:null, 'lower = better', skipColor) : ''}
       </div>`;
     });
   }
@@ -1101,7 +1036,9 @@ function renderDashboard(posts, stats) {
     });
     const fmtCls = (best.format||'post').toLowerCase();
     const fmtColors = { reel:'var(--green)', carousel:'var(--blue)', post:'var(--accent2)' };
-    document.getElementById('best-post-card').innerHTML = `<div class="best-post">
+    const isReel = fmtCls === 'reel';
+    const bestSkipColor = best.skipRate === null ? 'var(--muted)' : best.skipRate <= 45 ? 'var(--green)' : best.skipRate <= 60 ? 'var(--accent)' : 'var(--red)';
+    document.getElementById('best-post-card').innerHTML = `<div class="best-post" style="grid-template-columns:1fr${isReel?' 1fr 1fr 1fr 1fr 1fr':' 1fr 1fr 1fr 1fr'}">
       <div class="bp-main">
         <span class="bp-tag format-tag ${fmtCls}">${best.format}</span>
         <div class="bp-title">${best.title}</div>
@@ -1112,6 +1049,7 @@ function renderDashboard(posts, stats) {
       <div class="bp-stat"><div class="bp-stat-label">Views</div><div class="bp-stat-value" style="color:var(--label)">${(best.views||0).toLocaleString()}</div><div class="bp-stat-sub">impressions</div></div>
       <div class="bp-stat"><div class="bp-stat-label">Engagement Rate</div><div class="bp-stat-value" style="color:var(--accent)">${best.er.toFixed(1)}%</div><div class="bp-stat-sub">vs avg ${stats.avgER}%</div></div>
       <div class="bp-stat"><div class="bp-stat-label">New Followers</div><div class="bp-stat-value" style="color:var(--blue)">+${best.newFollowers}</div><div class="bp-stat-sub">${best.engagement.toLocaleString()} total engagements</div></div>
+      ${isReel ? `<div class="bp-stat"><div class="bp-stat-label">Skip Rate</div><div class="bp-stat-value" style="color:${bestSkipColor}">${best.skipRate!==null?best.skipRate.toFixed(1)+'%':'N/A'}</div><div class="bp-stat-sub">lower = better</div></div>` : ''}
     </div>`;
   }
 
@@ -1130,6 +1068,7 @@ function renderDashboard(posts, stats) {
         <div class="mix-stat">Avg Views: <span>${(fx.avgViews||0).toLocaleString()}</span></div>
         <div class="mix-stat">Avg ER: <span>${fx.avgER}%</span></div>
         <div class="mix-stat">Conv. Rate: <span>${fx.convRate}/1k</span></div>
+        ${fx.avgSkipRate !== null ? `<div class="mix-stat">Avg Skip Rate: <span style="color:${fx.avgSkipRate<=45?'var(--green)':fx.avgSkipRate<=60?'var(--accent)':'var(--red)'}">${fx.avgSkipRate}%</span></div>` : ''}
         <div class="mix-stat">Avg Engagement: <span>${fx.avgEngagement}</span></div>
         <div class="mix-stat">Posts: <span>${fx.count} of ${stats.validPosts.length}</span></div>
       </div>
@@ -1148,45 +1087,88 @@ function renderDashboard(posts, stats) {
     const c = pillarMeta[pl] || { border:'var(--accent)', text:'var(--accent)', icon:'📌' };
     pillarGrid.innerHTML += `<div class="pillar-card" style="border-top:3px solid ${c.border}">
       <div class="pillar-name" style="color:${c.text}">${c.icon} ${pl}</div>
-      <div class="pillar-stats">
+      <div class="pillar-stats" style="grid-template-columns:repeat(${px.avgSkipRate!==null?7:6},1fr)">
         <div><div class="pillar-stat-val">${px.count}</div><div class="pillar-stat-lbl">Posts</div></div>
         <div><div class="pillar-stat-val" style="color:${c.text}">${px.avgFollowers}</div><div class="pillar-stat-lbl">Foll./post</div></div>
         <div><div class="pillar-stat-val">${px.avgReach.toLocaleString()}</div><div class="pillar-stat-lbl">Avg Reach</div></div>
         <div><div class="pillar-stat-val">${(px.avgViews||0).toLocaleString()}</div><div class="pillar-stat-lbl">Avg Views</div></div>
         <div><div class="pillar-stat-val" style="color:${c.text}">${px.avgER}%</div><div class="pillar-stat-lbl">Avg ER</div></div>
         <div><div class="pillar-stat-val">${px.convRate}</div><div class="pillar-stat-lbl">Conv /1k</div></div>
+        ${px.avgSkipRate!==null?`<div><div class="pillar-stat-val" style="color:${px.avgSkipRate<=45?'var(--green)':px.avgSkipRate<=60?'var(--accent)':'var(--red)'}">${px.avgSkipRate}%</div><div class="pillar-stat-lbl">Skip Rate</div></div>`:''}
       </div>
     </div>`;
   });
 
-  // POST TABLE
+  // POST TABLE — sortable
   document.getElementById('post-count').textContent = `${stats.allPosts.length} posts tracked`;
-  const tbody = document.getElementById('postTable');
-  tbody.innerHTML = '';
-  allSortedPosts.forEach(p => {
-    const erClass    = p.er >= 30 ? 'er-high' : p.er >= 15 ? 'er-mid' : 'er-low';
-    const saves1k    = p.reach > 0 ? (p.saves||0)/p.reach*1000 : 0;
-    const sends1k    = p.reach > 0 ? (p.sends||0)/p.reach*1000 : 0;
-    const savesClass = saves1k >= 1.0 ? 'er-high' : 'er-low';
-    const fmt        = (p.format||'Post').toLowerCase();
-    const fmtTag     = `<span class="format-tag ${fmt}">${p.format||'Post'}</span>`;
-    const skipVal    = p.skipRate !== null ? p.skipRate.toFixed(1)+'%' : '—';
-    const skipClass  = p.skipRate === null ? '' : p.skipRate <= 45 ? 'skip-low' : p.skipRate <= 60 ? 'skip-mid' : 'skip-high';
-    tbody.innerHTML += `<tr>
-      <td class="muted">${p.date.substring(0,5)}</td>
-      <td>${p.title}</td>
-      <td>${fmtTag}</td>
-      <td class="muted">${p.pillar}</td>
-      <td>${p.reach.toLocaleString()}</td>
-      <td class="muted">${(p.views||0).toLocaleString()}</td>
-      <td class="${skipClass}">${skipVal}</td>
-      <td class="${savesClass}">${saves1k.toFixed(2)}</td>
-      <td class="muted">${sends1k.toFixed(2)}</td>
-      <td class="${erClass}">${p.er.toFixed(1)}%</td>
-      <td>${p.newFollowers > 0 ? '+'+p.newFollowers : '—'}</td>
-      <td>${p.url?`<a href="${p.url}" target="_blank" class="ig-link">↗ IG</a>`:'—'}</td>
-    </tr>`;
+
+  let tableData = stats.allPosts.map(p => ({
+    ...p,
+    saves1k: p.reach > 0 ? (p.saves||0)/p.reach*1000 : 0,
+    sends1k: p.reach > 0 ? (p.sends||0)/p.reach*1000 : 0,
+  }));
+
+  let sortCol = 'date';
+  let sortDir = -1; // -1 = desc
+
+  function renderPostTable() {
+    const tbody = document.getElementById('postTable');
+    tbody.innerHTML = '';
+
+    // Update header classes
+    document.querySelectorAll('#postTableHead th[data-col]').forEach(th => {
+      th.classList.remove('sort-asc','sort-desc');
+      if (th.dataset.col === sortCol) th.classList.add(sortDir === -1 ? 'sort-desc' : 'sort-asc');
+    });
+
+    const sorted = [...tableData].sort((a, b) => {
+      let av, bv;
+      if (sortCol === 'date')         { av = parseDate(a.date); bv = parseDate(b.date); return sortDir * (av - bv); }
+      if (sortCol === 'format')       { return sortDir * a.format.localeCompare(b.format); }
+      if (sortCol === 'pillar')       { return sortDir * (a.pillar||'').localeCompare(b.pillar||''); }
+      if (sortCol === 'reach')        { return sortDir * (a.reach - b.reach); }
+      if (sortCol === 'views')        { return sortDir * ((a.views||0) - (b.views||0)); }
+      if (sortCol === 'skipRate')     { return sortDir * ((a.skipRate??-1) - (b.skipRate??-1)); }
+      if (sortCol === 'saves1k')      { return sortDir * (a.saves1k - b.saves1k); }
+      if (sortCol === 'sends1k')      { return sortDir * (a.sends1k - b.sends1k); }
+      if (sortCol === 'er')           { return sortDir * (a.er - b.er); }
+      if (sortCol === 'newFollowers') { return sortDir * (a.newFollowers - b.newFollowers); }
+      return 0;
+    });
+
+    sorted.forEach(p => {
+      const erClass    = p.er >= 30 ? 'er-high' : p.er >= 15 ? 'er-mid' : 'er-low';
+      const savesClass = p.saves1k >= 1.0 ? 'er-high' : 'er-low';
+      const fmt        = (p.format||'Post').toLowerCase();
+      const fmtTag     = `<span class="format-tag ${fmt}">${p.format||'Post'}</span>`;
+      const skipVal    = p.skipRate !== null ? p.skipRate.toFixed(1)+'%' : '—';
+      const skipClass  = p.skipRate === null ? '' : p.skipRate <= 45 ? 'skip-low' : p.skipRate <= 60 ? 'skip-mid' : 'skip-high';
+      tbody.innerHTML += `<tr>
+        <td class="muted">${p.date.substring(0,5)}</td>
+        <td>${p.title}</td>
+        <td>${fmtTag}</td>
+        <td class="muted">${p.pillar}</td>
+        <td>${p.reach.toLocaleString()}</td>
+        <td class="muted">${(p.views||0).toLocaleString()}</td>
+        <td class="${skipClass}">${skipVal}</td>
+        <td class="${savesClass}">${p.saves1k.toFixed(2)}</td>
+        <td class="muted">${p.sends1k.toFixed(2)}</td>
+        <td class="${erClass}">${p.er.toFixed(1)}%</td>
+        <td>${p.newFollowers > 0 ? '+'+p.newFollowers : '—'}</td>
+        <td>${p.url?`<a href="${p.url}" target="_blank" class="ig-link">↗ IG</a>`:'—'}</td>
+      </tr>`;
+    });
+  }
+
+  document.querySelectorAll('#postTableHead th[data-col]').forEach(th => {
+    th.addEventListener('click', () => {
+      if (sortCol === th.dataset.col) { sortDir *= -1; }
+      else { sortCol = th.dataset.col; sortDir = -1; }
+      renderPostTable();
+    });
   });
+
+  renderPostTable();
 }
 
 async function init() {
