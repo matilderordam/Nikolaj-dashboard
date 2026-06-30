@@ -758,22 +758,6 @@ function renderDashboard(posts, stats) {
   document.getElementById('kb-conv').className   = `badge ${convOT ? 'green' : 'red'}`;
   document.getElementById('kpi-conv').className  = `kpi-card ${convOT ? 'on-track' : 'behind'}`;
 
-  // OVERVIEW ROW — skip rate + signal metrics
-  const skipEl = document.getElementById('ov-skip');
-  if (stats.avgSkipRate !== null) {
-    skipEl.textContent = stats.avgSkipRate.toFixed(1) + '%';
-    // Colour: low skip = good (green), high = bad (red)
-    skipEl.style.color = stats.avgSkipRate <= 45 ? 'var(--green)' : stats.avgSkipRate <= 60 ? 'var(--accent)' : 'var(--red)';
-  } else {
-    skipEl.textContent = 'N/A';
-    skipEl.style.color = 'var(--muted)';
-  }
-  document.getElementById('ov-saves').textContent    = stats.avgSaves1k;
-  document.getElementById('ov-sends').textContent    = stats.avgSends1k;
-  document.getElementById('ov-comments').textContent = stats.avgComments1k;
-  document.getElementById('ov-reach-reels').textContent    = stats.avgReachReels.toLocaleString();
-  document.getElementById('ov-newfoll-reels').textContent  = stats.avgNewFollReels;
-
   // ANALYSIS
   const analysisCard = document.getElementById('analysis-card');
   analysisCard.innerHTML = (stats.analysis || []).map(line =>
