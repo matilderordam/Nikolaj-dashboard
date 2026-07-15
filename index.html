@@ -113,19 +113,6 @@
   .chart-card.wide { grid-column: 1 / -1; }
   .chart-title { font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--label); margin-bottom: 20px; }
 
-  /* QUARTILE CARDS */
-  .quartile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--border); }
-  .quartile-half { padding: 24px 28px; }
-  .quartile-half.top { border-right: 1px solid var(--border); }
-  .quartile-label { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 16px; }
-  .quartile-label.top { color: var(--green); }
-  .quartile-label.bottom { color: var(--red); }
-  .quartile-stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 16px; }
-  .qs-block .qs-val { font-family: 'Barlow Condensed', sans-serif; font-size: 28px; font-weight: 900; line-height: 1; }
-  .qs-block .qs-lbl { font-size: 10px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 3px; }
-  .quartile-posts { font-size: 11px; color: var(--muted); line-height: 1.7; border-top: 1px solid var(--border); padding-top: 12px; }
-  .quartile-posts strong { color: var(--label); }
-
   /* SORTABLE TABLE */
   thead th[data-col] { user-select: none; }
   thead th[data-col]:hover { color: var(--accent); }
@@ -299,13 +286,9 @@
       <div class="chart-title">Follower Count · Actual vs. Expected Pace</div>
       <canvas id="followerChart" height="90"></canvas>
     </div>
-    <div class="chart-card">
+    <div class="chart-card wide">
       <div class="chart-title">Reach &amp; Impressions Per Post</div>
       <canvas id="reachChart" height="160"></canvas>
-    </div>
-    <div class="chart-card">
-      <div class="chart-title">Engagement Rate Per Post</div>
-      <canvas id="erChart" height="160"></canvas>
     </div>
   </div>
 
@@ -322,15 +305,12 @@
     <div style="overflow-x:auto;">
       <table>
         <thead>
-          <tr><th>Week (Mon)</th><th>Posts</th><th>Reach</th><th>Views</th><th>New Followers</th><th>Rate /1k</th><th>Status</th></tr>
+          <tr><th>Week (Mon)</th><th>Posts</th><th>Reach</th><th>Views</th><th>New Followers</th><th>Rate /1k</th></tr>
         </thead>
         <tbody id="weekTable"></tbody>
       </table>
     </div>
   </div>
-
-  <div class="section-title">What's Working · Top vs. Bottom Converters</div>
-  <div id="quartile-section" style="margin-bottom:32px;"></div>
 
   <div class="section-title">Best Performing Post</div>
   <div id="best-post-card"></div>
@@ -552,6 +532,7 @@ function computeStats(posts) {
     fx.avgFollowers  = +(fx.followers / fx.count).toFixed(1);
     fx.convRate      = fx.reach > 0 ? +(fx.followers / fx.reach * 1000).toFixed(2) : 0;
     fx.avgSkipRate   = fx.skipCount > 0 ? +(fx.skipSum / fx.skipCount).toFixed(1) : null;
+    fx.pct           = validPosts.length ? Math.round(fx.count / validPosts.length * 100) : 0;
   });
 
   // Pillars
@@ -705,13 +686,6 @@ function buildAnalysis(s) {
   return lines;
 }
 
-function weekStatus(rate, followers, reach) {
-  if (followers >= TARGET_WEEKLY_FOLLOWERS)                  return { label:'On track', cls:'green' };
-  if (reach >= (TARGET_WEEKLY_FOLLOWERS / MIN_RATE * 1000)) return { label:'High reach, room to convert', cls:'yellow' };
-  if (rate >= MIN_RATE)                                      return { label:'Converts well, low reach', cls:'yellow' };
-  return { label:'Low reach + low conversion', cls:'red' };
-}
-
 let charts = {};
 
 function dotColor(newFollowers) {
@@ -834,24 +808,12 @@ function renderDashboard(posts, stats) {
     options:{ responsive:true, plugins:{ legend:{display:true,labels:{color:'#8892a4',font:{size:11},boxWidth:12,padding:12}}, tooltip:{backgroundColor:'#111318',borderColor:'#1e2330',borderWidth:1,titleColor:'#eef0f5',bodyColor:'#8892a4',padding:10} }, scales:{ x:{grid:{display:false},ticks:{font:{size:9},maxRotation:45}}, y:{grid:{color:'#1a1e28'},ticks:{font:{size:10}}} } }
   });
 
-  // ER CHART
-  if (charts.er) charts.er.destroy();
-  charts.er = new Chart(document.getElementById('erChart'), {
-    type:'line',
-    data:{ labels:postLabels, datasets:[
-      { label:'ER %', data:sortedPosts.map(p=>Math.min(p.er,60)), borderColor:'#3de89e', backgroundColor:'rgba(61,232,158,0.06)', fill:true, tension:0.4, pointBackgroundColor:'#3de89e', pointRadius:4, borderWidth:2 },
-      { label:'Min 15%', data:sortedPosts.map(()=>15), borderColor:'rgba(255,77,109,0.4)', borderDash:[4,3], pointRadius:0, borderWidth:1.5, fill:false }
-    ]},
-    options:{ responsive:true, plugins:{ legend:{display:true,labels:{color:'#5a6175',font:{size:11},boxWidth:14}}, tooltip:{backgroundColor:'#111318',borderColor:'#1e2330',borderWidth:1,titleColor:'#eef0f5',bodyColor:'#8892a4',padding:10} }, scales:{ x:{grid:{display:false},ticks:{font:{size:9},maxRotation:45}}, y:{grid:{color:'#1a1e28'},ticks:{font:{size:10},callback:v=>v+'%'},min:0} } }
-  });
-
   // WEEKLY CONVERSION
   const weeks = stats.weeks || [];
   const weekTable = document.getElementById('weekTable');
   weekTable.innerHTML = '';
   const thisMonday = mondayOf(new Date());
   weeks.forEach(w => {
-    const st = weekStatus(w.rate, w.followers, w.reach);
     const inProgress = isoKey(w.monday) === isoKey(thisMonday);
     const label = w.monday.toLocaleDateString('en-GB', { day:'2-digit', month:'short' });
     const rateCls = w.rate >= MIN_RATE ? 'er-high' : 'er-low';
@@ -859,7 +821,6 @@ function renderDashboard(posts, stats) {
       <td class="muted">${label}${inProgress?' <span style="color:var(--accent2);font-size:10px;">· in progress</span>':''}</td>
       <td>${w.posts}</td><td>${w.reach.toLocaleString()}</td><td class="muted">${(w.views||0).toLocaleString()}</td>
       <td>+${w.followers}</td><td class="${rateCls}">${w.rate.toFixed(2)}</td>
-      <td><span class="badge ${st.cls}">${st.label}</span></td>
     </tr>`;
   });
 
@@ -874,96 +835,6 @@ function renderDashboard(posts, stats) {
     ]},
     options:{ responsive:true, plugins:{ legend:{display:true,labels:{color:'#8892a4',font:{size:11},boxWidth:12,padding:12}}, tooltip:{backgroundColor:'#111318',borderColor:'#1e2330',borderWidth:1,titleColor:'#eef0f5',bodyColor:'#8892a4',padding:10} }, scales:{ x:{grid:{display:false},ticks:{font:{size:10}}}, y:{grid:{color:'#1a1e28'},ticks:{font:{size:10}},title:{display:true,text:'Followers / 1,000 reach',color:'#5a6175',font:{size:10}},beginAtZero:true} } }
   });
-
-  // ---- QUARTILE SPLIT: TOP 25% vs BOTTOM 25% by new followers ----
-  (function renderQuartile() {
-    const postsWithData = stats.validPosts.filter(p => p.reach > 0);
-    if (postsWithData.length < 4) return;
-
-    const sorted = [...postsWithData].sort((a,b) => b.newFollowers - a.newFollowers);
-    const cutoff = Math.max(1, Math.floor(sorted.length * 0.25));
-    const top    = sorted.slice(0, cutoff);
-    const bottom = sorted.slice(sorted.length - cutoff);
-
-    const avg = (arr, fn) => arr.length ? +(arr.reduce((s,p) => s + fn(p), 0) / arr.length).toFixed(2) : 0;
-    const avgInt = (arr, fn) => arr.length ? Math.round(arr.reduce((s,p) => s + fn(p), 0) / arr.length) : 0;
-
-    const stat = (arr) => ({
-      foll:     +(arr.reduce((s,p)=>s+p.newFollowers,0) / arr.length).toFixed(1),
-      reach:    avgInt(arr, p => p.reach),
-      saves1k:  avg(arr, p => p.reach > 0 ? p.saves/p.reach*1000 : 0),
-      sends1k:  avg(arr, p => p.reach > 0 ? p.sends/p.reach*1000 : 0),
-      skipRate: (() => { const r = arr.filter(p=>p.skipRate!==null); return r.length ? +(r.reduce((s,p)=>s+p.skipRate,0)/r.length).toFixed(1) : null; })(),
-    });
-
-    const t = stat(top);
-    const b = stat(bottom);
-
-    const fmtSkip = v => v !== null ? v.toFixed(1)+'%' : 'N/A';
-    const topPosts    = top.map(p => p.title).join(', ');
-    const bottomPosts = bottom.map(p => p.title).join(', ');
-
-    const diffColor = (tVal, bVal, lowerBetter) => {
-      if (lowerBetter) return tVal < bVal ? 'var(--green)' : 'var(--red)';
-      return tVal > bVal ? 'var(--green)' : 'var(--red)';
-    };
-
-    document.getElementById('quartile-section').innerHTML = `
-      <div class="quartile-grid" style="background:var(--surface);border:1px solid var(--border);">
-        <div class="quartile-half top" style="background:var(--surface);">
-          <div class="quartile-label top">▲ Top ${cutoff} posts · avg ${t.foll} new followers</div>
-          <div class="quartile-stats">
-            <div class="qs-block">
-              <div class="qs-val" style="color:var(--green)">${t.reach.toLocaleString()}</div>
-              <div class="qs-lbl">Avg Reach</div>
-            </div>
-            <div class="qs-block">
-              <div class="qs-val" style="color:var(--green)">${t.saves1k}</div>
-              <div class="qs-lbl">Saves / 1k</div>
-            </div>
-            <div class="qs-block">
-              <div class="qs-val" style="color:var(--green)">${t.sends1k}</div>
-              <div class="qs-lbl">Sends / 1k</div>
-            </div>
-            <div class="qs-block">
-              <div class="qs-val" style="color:${t.skipRate !== null && b.skipRate !== null ? diffColor(t.skipRate, b.skipRate, true) : 'var(--text)'}">${fmtSkip(t.skipRate)}</div>
-              <div class="qs-lbl">Avg Skip Rate</div>
-            </div>
-            <div class="qs-block">
-              <div class="qs-val" style="color:var(--green)">${t.foll}</div>
-              <div class="qs-lbl">New Followers</div>
-            </div>
-          </div>
-          <div class="quartile-posts"><strong>Posts:</strong> ${topPosts}</div>
-        </div>
-        <div class="quartile-half bottom" style="background:var(--surface);border-left:1px solid var(--border);">
-          <div class="quartile-label bottom">▼ Bottom ${cutoff} posts · avg ${b.foll} new followers</div>
-          <div class="quartile-stats">
-            <div class="qs-block">
-              <div class="qs-val" style="color:var(--red)">${b.reach.toLocaleString()}</div>
-              <div class="qs-lbl">Avg Reach</div>
-            </div>
-            <div class="qs-block">
-              <div class="qs-val" style="color:var(--red)">${b.saves1k}</div>
-              <div class="qs-lbl">Saves / 1k</div>
-            </div>
-            <div class="qs-block">
-              <div class="qs-val" style="color:var(--red)">${b.sends1k}</div>
-              <div class="qs-lbl">Sends / 1k</div>
-            </div>
-            <div class="qs-block">
-              <div class="qs-val" style="color:${t.skipRate !== null && b.skipRate !== null ? diffColor(b.skipRate, t.skipRate, true) : 'var(--text)'}">${fmtSkip(b.skipRate)}</div>
-              <div class="qs-lbl">Avg Skip Rate</div>
-            </div>
-            <div class="qs-block">
-              <div class="qs-val" style="color:var(--red)">${b.foll}</div>
-              <div class="qs-lbl">New Followers</div>
-            </div>
-          </div>
-          <div class="quartile-posts"><strong>Posts:</strong> ${bottomPosts}</div>
-        </div>
-      </div>`;
-  })();
 
   // RECENT POSTS
   const sevenDaysAgo = new Date(new Date() - 7*86400000);
